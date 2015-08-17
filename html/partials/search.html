@@ -1,0 +1,36 @@
+<h1>All Users</h1>
+<form class="form-inline">
+  <div class="form-group">
+    <label for="query">Search</label>
+    <input type="text" class="form-control" id="query" placeholder="User Name" ng-model="query">
+  </div>
+    <div class="form-group">
+    <label for="sortby">Sort by</label>
+    <select ng-model="orderProp" class="form-control" id="sortby">
+      <option value="username">Name</option>
+      <option value="meta.age">Age</option>
+    </select>
+  </div>
+</form>
+
+<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp">
+  <div class="media">
+  <div class="media-left" ng-if="true == user1.has_picture">
+    <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">
+  </div>
+  <div class="media-body">
+    <h4 class="media-heading">{{user1.username}}
+        <div ng-if="user['uname'] !== user1['username']">
+        <button type="button" class="btn btn-success" ng-click="addContact(user1._id)" ng-if="user['contacts'].indexOf(user1._id) < 0">Add</button>
+        <button type="button" class="btn btn-danger" ng-click="removeContact(user1._id)" ng-if="user['contacts'].indexOf(user1._id) > -1">Remove</button>
+        <button type="button" class="btn btn-danger" ng-click="deleteUser(user1._id)" ng-if="true == user.is_admin">Delete User</button>
+        </div>
+    </h4>
+    {{user1.name}}, {{user1.meta.age}}, {{user1.location}}
+  </div>
+  </div>
+  <!--<h4></h4>
+  <p></p>-->
+</div>
+
+<ng-include src="tplSidebar"></ng-include>

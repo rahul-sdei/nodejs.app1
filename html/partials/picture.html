@@ -1,0 +1,11 @@
+<h1>Upload a Picture</h1>
+<form id="uploadForm" ng-submit="uploadFile()">
+<div class="form-group">
+  <label for="picture">Select File</label>
+  <input type="file" class="form-control" id="picture" file-model="user.picture">
+</div>
+<button type="submit" class="btn btn-primary" id="btn_login" >Submit</button>
+<button type="button" class="btn btn-default" id="btn_goback" ng-click="redirect('home')">Go Back</button>
+</form>
+
+<ng-include src="tplSidebar"></ng-include>

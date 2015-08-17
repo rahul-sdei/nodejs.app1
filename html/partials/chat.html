@@ -1,0 +1,68 @@
+<script type="text/template" class="new_mesg">
+    <p class="text-right">
+      <%= rc.sender %>:
+      <%= rc.message %> -
+      <small><i><%= rc.dateString %></i></small>
+      </p>
+</script>
+<script type="text/template" class="sent_mesg">
+    <p class="text-left">
+      <%= rc.creator %>:
+      <%= rc.message %> -
+      <small><i><%= rc.dateString %></i></small>
+      </p>
+</script>
+<script type='text/javascript'>
+    // When rending an underscore template, we want top-level
+    // variables to be referenced as part of an object. For
+    // technical reasons (scope-chain search), this speeds up
+    // rendering; however, more importantly, this also allows our
+    // templates to look / feel more like our server-side
+    // templates that use the rc (Request Context / Colletion) in
+    // order to render their markup.
+    _.templateSettings.variable = "rc";
+    // Grab the HTML out of our template tag and pre-compile it.
+    
+    var tplNewMesg = _.template(
+        $('script.new_mesg').html()
+    );
+    var tplSentMesg = _.template(
+        $('script.sent_mesg').html()
+    );
+    
+    function newMessage(data) {
+        var theDate = new Date(data['date']);
+        data['dateString'] = theDate.toGMTString();
+        
+        var mesg_html = tplNewMesg(data);
+        $('#chat_log').append(mesg_html);
+    }
+    
+    function messageSent(data) {
+        var theDate = new Date(data['date']);
+        data['dateString'] = theDate.toGMTString();
+        
+        var mesg_html = tplSentMesg(data);
+        $('#chat_log').append(mesg_html);
+    }
+</script>
+
+<h1>Chat with {{recipient.username}}</h1>
+
+<div id="chat_log">
+    <p ng-repeat="chat in chats" ng-class="{'text-left': chat.creator_id === user.uname, 'text-right': chat.creator_id !== user.uname}">
+        {{chat['creator_id']}}:
+        {{chat['message']}} -
+        <small><i>{{chat['created_at']|theDate}}</i></small>
+    </p>
+</div>
+
+<form ng-submit="sendChat()">
+  <div class="form-group">
+    <label for="exampleInputEmail1">Type your message</label>
+    <textarea class="form-control" rows="3" ng-model="formData.text"></textarea>
+  </div>
+  <button type="submit" class="btn btn-success">Submit</button>
+</form>
+
+<ng-include src="tplSidebar"></ng-include>

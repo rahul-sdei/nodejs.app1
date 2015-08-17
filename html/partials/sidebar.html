@@ -1,0 +1,33 @@
+<div block-replacement="sidebar">
+  <div class="list-group" ng-if="user._id">
+  <a href="javascript:;" class="list-group-item">
+    <h4 class="list-group-item-heading">{{user.uname}}</h4>
+    <p class="list-group-item-text">
+    <div class="media">
+      <div class="media-left">
+        <img class="media-object" ng-src="../uploads/{{user.uname}}/mypicture?dim=64" alt="{{user.uname}}" ng-if="true == user.has_picture">
+      </div>
+      <div class="media-body">
+        <h4 class="media-heading">{{user.fullname}}</h4>
+        <span ng-if="user.age !== ''">{{user.age}},</span>
+        <span ng-if="user.location !== ''">{{user.location}}</span>
+      </div>
+    </div>
+    
+    </p>
+  </a>
+  <a href="index.html#/editprofile" class="list-group-item" ng-click="redirect('editprofile')">Edit Profile</a>
+  <a href="index.html#/picture" class="list-group-item" ng-click="redirect('picture')">Upload Picture</a>
+  <a href="index.html#/password" class="list-group-item" ng-click="redirect('password')">Change Password</a>
+  <a href="index.html#/logout" class="list-group-item" ng-click="logout()">Logout</a>
+  </div>
+</div>
+
+<div block-replacement="menu2">
+  <ul class="nav nav-tabs" ng-if="user._id">
+  <li role="presentation" class=""><a href="index.html#/home">Home</a></li>
+  <li role="presentation"><a href="index.html#/search/history">Chats</a></li>
+  <li role="presentation"><a href="index.html#/search/mycontacts">Contacts</a></li>
+  <li role="presentation"><a href="index.html#/search">Search</a></li>
+  </ul>
+</div>

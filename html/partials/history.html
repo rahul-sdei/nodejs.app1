@@ -1,0 +1,39 @@
+<h1>Recent Chats</h1>
+<form class="form-inline">
+  <div class="form-group">
+    <label for="query">Search</label>
+    <input type="text" class="form-control" id="query" placeholder="User Name" ng-model="query">
+  </div>
+    <div class="form-group">
+    <label for="sortby">Sort by</label>
+    <select ng-model="orderProp" class="form-control" id="sortby">
+      <option value="username">Name</option>
+      <option value="meta.age">Age</option>
+    </select>
+  </div>
+</form>
+
+<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp">
+  <div class="media">
+  <div class="media-left" ng-if="true == user1.has_picture">
+    <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">
+  </div>
+  <div class="media-body">
+    <h4 class="media-heading">{{user1.username}}
+        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+user1.username)">Chat</button>
+        <button type="button" class="btn btn-danger" ng-click="deleteChat(user1.username)">Delete</button>
+    </h4>
+    {{user1.name}}, {{user1.meta.age}}, {{user1.location}}
+    <hr />
+    <p>
+        <strong>{{chats[user1.username] ['creator_id']}}</strong>:
+        {{chats[user1.username] ['message']}} -
+        <small><i>{{chats[user1.username] ['created_at']}}</i></small>
+    </p>
+  </div>
+  </div>
+  <!--<h4></h4>
+  <p></p>-->
+</div>
+
+<ng-include src="tplSidebar"></ng-include>

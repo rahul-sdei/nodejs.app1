@@ -1,0 +1,36 @@
+<html>
+<head>
+ <title>Socket.html</title>
+ <script src="/socket.io/socket.io.js"></script>
+ <script src="http://code.jquery.com/jquery-latest.min.js"></script>
+</head>
+<body>
+ <script>
+  var socket = io.connect();
+  socket.on('message', function(data){
+   console.log(data);
+   });
+  socket.on('date', function(data){
+   $('#date').text(data.date);
+   });
+  socket.on('mesg', function(data){
+   $('#chat').append(data.mesg + '<br />');
+   });
+  jQuery(function($){
+  $('#submit').on('click', function(){
+   var mesg = $('input[name="mesg"]').val();
+   socket.emit('chat', {'mesg': mesg});
+   })
+  });
+ </script>
+ <div>Socket.html</div>
+ <div id="date"></div>
+ <div id="chat"></div>
+ <div id="form">
+ <form action="" method="post">
+ <input type="text" name="mesg" maxlength="255" />
+ <input type="button" id="submit" value="Send" />
+ </form>
+ </div>
+</body>
+</html>
