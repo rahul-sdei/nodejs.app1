@@ -62,25 +62,35 @@ angular.module('myApp.user').service("$userState", ['$http', '$location', functi
       self.invoke(next);
       return;
     }
-    // when landing on the page, get data and show them
-    $http.get('/home')
-    .success(function(result) {
-      data = result['user'];
-      
-      /* check response object, redirect if invalid user */
-      if (typeof data['_id'] == 'undefined') {
+    
+    self.wakeup(function(err){
+      if (err) {
         $location.path( 'login' );
         return;
       }
-      
       /* post login process */
       self.invoke(next);
+      });
+  },
+  
+  wakeup: function(next) {
+    var self = this;
+    $http.get('/home')
+    .success(function(result) {
+      /* check response object, redirect if invalid user */
+      if (typeof result['user'] ['_id'] == 'undefined') {
+        next(true);
+        return;
+      }
+      
+      self.setData(result['user']);
+      next(null);
     })
     .error(function(data) {
       console.log('Error: ' + data);
       $location.path( 'login' );
     });
-  },
+    },
   
   invoke: function(next) {
     if (isLoggedin !== true) {
