@@ -72,3 +72,13 @@ modules/views/
 # vim Files
 # --------------------
 *.swp
+
+# ---
+# Komodoedit project
+# ---
+*.komodoproject
+
+# ---
+# Uploads directory
+# ---
+/uploads/*
