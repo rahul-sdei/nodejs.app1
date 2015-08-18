@@ -13,7 +13,7 @@ angular.module('myApp.user').config(['$routeProvider', function($routeProvider) 
   });
 }]);
 
-angular.module('myApp.user').controller('User', ['$scope', '$http', '$location', function($scope, $http, $location) {
+angular.module('myApp.user').controller('User', ['$scope', '$http', '$location', '$userState', function($scope, $http, $location, $userState) {
   $scope.formData = {};
     
   // when submitting the add form, send the text to the node API
@@ -33,7 +33,13 @@ angular.module('myApp.user').controller('User', ['$scope', '$http', '$location',
     $http.post('/login', $scope.formData)
       .success(function(data) {
         $scope.formData = {}; // clear the form so our user is ready to enter another
-        $location.path( 'home' );
+        
+        /* post login process */
+        $userState.setData(data['user']);
+        $userState.invoke(function(err){
+          $location.path( 'home' );
+          });
+        
       })
       .error(function(data) {
         console.log('Error: ' + data);
@@ -82,6 +88,10 @@ angular.module('myApp.user').service("$userState", ['$http', '$location', functi
       socket.connect(data);
     }
     
+    if (isCallable(next) !== true) {
+      return;
+    }
+    
     next(null, function(err, next2){
       if (err) {
         return;
@@ -108,6 +118,10 @@ angular.module('myApp.user').service("$userState", ['$http', '$location', functi
     data['uname'] = uname;
   },
   
+  setData: function(object) {
+    data = object;
+    },
+    
   getData: function() {
     data['isLoggedin'] = isLoggedin;
     return data;
