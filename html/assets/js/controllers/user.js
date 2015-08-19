@@ -9,12 +9,16 @@ angular.module('myApp.user').config(['$routeProvider', function($routeProvider) 
     controller: 'User'
   })
   .otherwise({
-    redirectTo: '/login'
+    redirectTo: '/home'
   });
 }]);
 
-angular.module('myApp.user').controller('User', ['$scope', '$http', '$location', '$userState', function($scope, $http, $location, $userState) {
+angular.module('myApp.user').controller('User', ['$scope', '$http', '$location', '$userState', '$localStorage', function($scope, $http, $location, $userState, $localStorage) {
   $scope.formData = {};
+  $scope.$storage = $localStorage;
+  if (typeof $localStorage.loggedinUser !== 'undefined') {
+    $scope.formData['uname'] = $localStorage.loggedinUser['uname'];
+  }
     
   // when submitting the add form, send the text to the node API
   $scope.createUser = function() {
@@ -51,7 +55,7 @@ angular.module('myApp.user').controller('User', ['$scope', '$http', '$location',
   };
 }]);
 
-angular.module('myApp.user').service("$userState", ['$http', '$location', function($http, $location){
+angular.module('myApp.user').service("$userState", ['$http', '$location', '$localStorage', function($http, $location, $localStorage){
   var isLoggedin = false;
   var data = {};
 
@@ -129,7 +133,7 @@ angular.module('myApp.user').service("$userState", ['$http', '$location', functi
   },
   
   setData: function(object) {
-    data = object;
+    $localStorage.loggedinUser = data = object;
     },
     
   getData: function() {

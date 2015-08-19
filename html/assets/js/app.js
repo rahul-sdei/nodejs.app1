@@ -10,7 +10,7 @@ for (var i=0;i<modules.length;i++)
 {
 angular.module(''+modules[i], []);
 }
-modules.unshift('ngRoute');
+modules.unshift('ngRoute', 'ngStorage');
 console.log('modules:', modules);
 
 /* App Module */

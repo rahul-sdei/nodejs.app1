@@ -29,6 +29,7 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
           console.log(data);
         })
         .error(function(data) {
+	  $location.path('home');
           console.log('Error: ' + data);
         });
     }
@@ -51,21 +52,29 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
 	  'message': $scope.formData['text']
 	  };
 	chatData['date'] = Date.now();
-        $http.post('/chats/', chatData)
-        .success(function(data) {
-          $scope.formData = {}; // clear the form so our user is ready to enter another
-          console.log(data);
-	  messageSent(chatData);
-        })
-        .error(function(data) {
-          console.log('Error: ' + data);
-        });
+	chatData['_id'] = getRandomInt(1, 9999);
+	sendMessage(chatData, function(err) {
+	  if (err) {
+	    console.log('Error while sending chat');
+	    return;
+	  }
+	  /* Send to web api */
+	  $http.post('/chats/', chatData)
+	  .success(function(data) {
+	    $scope.formData = {}; // clear the form so our user is ready to enter another
+	    console.log(data);
+	  })
+	  .error(function(data) {
+	    console.log('Error: ' + data);
+	  });
+	});
+        
     };
 }]);
 
 angular.module('myApp.chat').filter('theDate', function(){
   return function(input) { 
     var theDate = new Date(input);
-    return theDate.toGMTString();
+    return theDate.format('m M Y H.i');
   }
   });

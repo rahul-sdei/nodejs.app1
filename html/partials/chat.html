@@ -6,10 +6,12 @@
       </p>
 </script>
 <script type="text/template" class="sent_mesg">
-    <p class="text-left">
+    <p id="chat_<%= rc._id %>" class="text-left">
       <%= rc.creator %>:
       <%= rc.message %> -
-      <small><i><%= rc.dateString %></i></small>
+      <small><i><%= rc.dateString %></i>
+      <span>&#x019F;</span>
+      </small>
       </p>
 </script>
 <script type='text/javascript'>
@@ -32,25 +34,31 @@
     
     function newMessage(data) {
         var theDate = new Date(data['date']);
-        data['dateString'] = theDate.toGMTString();
+        data['dateString'] = theDate.format('m M Y H.i');
         
         var mesg_html = tplNewMesg(data);
         $('#chat_log').append(mesg_html);
     }
     
-    function messageSent(data) {
+    function sendMessage(data, next) {
         var theDate = new Date(data['date']);
-        data['dateString'] = theDate.toGMTString();
+        data['dateString'] = theDate.format('m M Y H.i');
         
         var mesg_html = tplSentMesg(data);
         $('#chat_log').append(mesg_html);
+        
+        next();
+    }
+    
+    function messageSent(data) {
+        $('#chat_log #chat_' + data['_id'] + ' span').html('&#10003;');
     }
 </script>
 
 <h1>Chat with {{recipient.username}}</h1>
 
 <div id="chat_log">
-    <p ng-repeat="chat in chats" ng-class="{'text-left': chat.creator_id === user.uname, 'text-right': chat.creator_id !== user.uname}">
+    <p id="chat_{{chat['_id']}}" ng-repeat="chat in chats" ng-class="{'text-left': chat.creator_id === user.uname, 'text-right': chat.creator_id !== user.uname}">
         {{chat['creator_id']}}:
         {{chat['message']}} -
         <small><i>{{chat['created_at']|theDate}}</i></small>

@@ -65,8 +65,12 @@ router.post('/', function(req, res, next) {
     Chat.Model.sendChat(creator_id, creator_id, recipient_id, message, next); // for sender
     Chat.Model.sendChat(creator_id, recipient_id, creator_id, message, next); // for recipient
     
-    /* send notification */
-    socket.notifyUser(recipient_id, 'chat', { 'sender': creator_id, 'message': message, 'date': Date.now() });
+    /* send notification to recipient */
+    socket.notifyUser(recipient_id, 'chat.new', { 'sender': creator_id, 'message': message, 'date': Date.now() });
+    /* send notification to sender */
+    socket.notifyUser(creator_id, 'chat.sent', {
+      '_id': req.body._id
+      });
     
     /* send response */
     res.status(200).json({'code': 0, 'error': null});
