@@ -8,3 +8,7 @@ var task = require('task');
 task.setId(63);
 task.setTitle('My First Node.js Task');
 console.log(task.getData());
+
+var project2 = require('project');
+project.setId(83);
+console.log(project2.getData());
