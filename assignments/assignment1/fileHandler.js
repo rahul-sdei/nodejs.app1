@@ -99,11 +99,16 @@ module.exports = function(dir) {
     
     newObject['listImages'] = function(next) {
         console.log('Listing images...');
-        fs.readdir(dir + '/images', function(err, files){
+        var src = dir + '/images';
+        fs.readdir(src, function(err, files){
         if (err) {
             return;
         }
         var i = 1;
+        files.sort(function(a, b) {
+            return fs.statSync(src + '/' + a).size - 
+                   fs.statSync(src + '/' + b).size;
+        });
         files.forEach(function(f){
             console.log(i, f);
             i++;
@@ -115,11 +120,16 @@ module.exports = function(dir) {
     
     newObject['listAudios'] = function(next) {
         console.log('Listing audios...');
-        fs.readdir(dir + '/audios', function(err, files){
+        var src = dir + '/audios';
+        fs.readdir(src, function(err, files){
         if (err) {
             return;
         }
         var i = 1;
+        files.sort(function(a, b) {
+            return fs.statSync(src + '/' + a).size - 
+                   fs.statSync(src + '/' + b).size;
+        });
         files.forEach(function(f){
             console.log(i, f);
             i++;
@@ -131,11 +141,16 @@ module.exports = function(dir) {
     
     newObject['listVideos'] = function() {
         console.log('Listing videos...');
-        fs.readdir(dir + '/videos', function(err, files){
+        var src = dir + '/videos';
+        fs.readdir(src, function(err, files){
         if (err) {
             return;
         }
         var i = 1;
+        files.sort(function(a, b) {
+            return fs.statSync(src + '/' + a).size - 
+                   fs.statSync(src + '/' + b).size;
+        });
         files.forEach(function(f){
             console.log(i, f);
             i++;

@@ -54,7 +54,7 @@ angular.module('myApp.search').controller('Search', ['$scope', '$http', '$routeP
         $http.delete('/users/' + uid)
         .success(function(data) {
           console.log(data);
-          getData();
+          getContacts();
         })
         .error(function(data) {
           console.log('Error: ' + data);
@@ -65,7 +65,7 @@ angular.module('myApp.search').controller('Search', ['$scope', '$http', '$routeP
         $http.post('/users/' + $scope.user['uname'] + '/contacts', { 'ulist': [ uid ] })
         .success(function(data) {
           console.log(data);
-          getData();
+          getContacts();
         })
         .error(function(data) {
           console.log('Error: ' + data);
@@ -76,7 +76,7 @@ angular.module('myApp.search').controller('Search', ['$scope', '$http', '$routeP
         $http.delete('/users/' + $scope.user['uname'] + '/contacts/' + uid)
         .success(function(data) {
           console.log(data);
-          getData();
+          getContacts();
         })
         .error(function(data) {
           console.log('Error: ' + data);
@@ -87,7 +87,7 @@ angular.module('myApp.search').controller('Search', ['$scope', '$http', '$routeP
         $http.delete('/chats/' + $scope.user['uname'] + '/' + recipient)
         .success(function(data) {
           console.log(data);
-          getData();
+          getContacts();
         })
         .error(function(data) {
           console.log('Error: ' + data);
