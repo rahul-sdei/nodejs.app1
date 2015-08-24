@@ -108,3 +108,9 @@ angular.module('myApp.search').controller('Search',
         $location.path( path );
       };
 }]);
+
+angular.module('myApp.search').filter('toString', function(){
+  return function(input) { 
+    return input.sort().toString();
+  }
+  });

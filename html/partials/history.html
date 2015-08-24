@@ -13,22 +13,20 @@
   </div>
 </form>
 
-<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp" id="history_{{user1.username}}">
+<div class="bs-callout bs-callout-info" ng-repeat="chat in chats | filter:query | orderBy:orderProp" id="history_{{chat.chat_id}}">
   <div class="media">
-  <div class="media-left" ng-if="true == user1.has_picture">
-    <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">
+  <div class="media-left" ng-if="true == chat.chat_icon">
+    <img class="media-object" ng-src="../uploads/chat_{{chat.chat_id}}/icon?dim=64" alt="{{chat.chat_icon}}">
   </div>
   <div class="media-body">
-    <h4 class="media-heading">{{user1.username}}
-        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+user1.username)">Chat</button>
-        <button type="button" class="btn btn-danger" ng-click="deleteChat(user1.username)">Delete</button>
+    <h4 class="media-heading">{{chat.recipients|toString}}
+        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+chat.chat_id)">Chat</button>
+        <button type="button" class="btn btn-danger" ng-click="deleteChat(chat.chat_id)">Delete</button>
     </h4>
-    {{user1.name}}, {{user1.meta.age}}, {{user1.location}}
-    <hr />
     <p>
-        <strong>{{chats[user1.username] ['creator_id']}}</strong>:
-        {{chats[user1.username] ['message']}} -
-        <small><i>{{chats[user1.username] ['created_at']}}</i></small>
+        <strong>{{chat['last_mesg'] ['creator_id']}}</strong>:
+        {{chat['last_mesg'] ['message']}} -
+        <small><i>{{chat['last_mesg'] ['created_at']}}</i></small>
     </p>
   </div>
   </div>

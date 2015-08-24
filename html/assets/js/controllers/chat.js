@@ -1,15 +1,25 @@
 angular.module('myApp.chat').config(['$routeProvider', function($routeProvider) {
   $routeProvider
-  .when('/chat/:uname', {
+  .when('/chat/new/:uname', {
     templateUrl: function(params){ return 'partials/chat.html'; },
-    controller: 'Chat'
+    controller: 'Chat',
+    isNewChat: true
+  })
+  .when('/chat/:chat_id', {
+    templateUrl: function(params){ return 'partials/chat.html'; },
+    controller: 'Chat',
+    isNewChat: false
   })
 }]);
-angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParams', '$location', '$userState', function($scope, $http, $routeParams, $location, $userState) {
+angular.module('myApp.chat').controller('Chat',
+    ['$route', '$scope', '$http', '$routeParams', '$location', '$userState',
+     function($route, $scope, $http, $routeParams, $location, $userState) {
 	$scope.tplSidebar = 'partials/sidebar.html';
     $scope.recipient = {};
     $scope.chats = [];
     $scope.formData = {};
+    
+    var isNewChat = $route.current.$$route.isNewChat;
    
     // when landing on the page, get data and show them      
     $userState.findUser(function(err, next){
@@ -18,9 +28,16 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
     }
     $scope.user = $userState.getData();
     console.log('$userState.findUser', $scope.user);
-    next(null, function(){getRecipient()});
+    next(null, function(){getData()});
     });
     
+    function getData() {
+      if (isNewChat) {
+	getRecipient();
+      } else {
+	getConversation();
+      }
+    }
   function getRecipient() {
   $http.get('/users/' + $routeParams.uname)
         .success(function(data) {
@@ -35,7 +52,7 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
     }
     
     function getConversation() {
-    $http.get('/chats/' + $scope.user['uname'] + '/' + $scope.recipient['username'])
+    $http.get('/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id)
         .success(function(data) {
           $scope.chats = data;
           console.log(data);
@@ -48,7 +65,6 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
     $scope.sendChat = function() {
 	var chatData = {
 	  'creator': $scope.user['uname'],
-	  'recipient': $scope.recipient['username'],
 	  'message': $scope.formData['text']
 	  };
 	chatData['date'] = Date.now();
@@ -59,7 +75,13 @@ angular.module('myApp.chat').controller('Chat', ['$scope', '$http', '$routeParam
 	    return;
 	  }
 	  /* Send to web api */
-	  $http.post('/chats/', chatData)
+	  var postUrl = null;
+	  if (isNewChat) {
+	    postUrl = '/chats/' + $scope.user['uname'] + '/' + $scope.recipient['uname'];
+	  } else {
+	    postUrl = '/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id;
+	  }
+	  $http.post(postUrl, chatData)
 	  .success(function(data) {
 	    $scope.formData = {}; // clear the form so our user is ready to enter another
 	    console.log(data);

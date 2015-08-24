@@ -24,7 +24,7 @@ router.get('/', function(req, res, next){
     if ( typeof (search.recipient)!='undefined' ) { where['recipient_id'] =new RegExp(search.recipient, 'i'); }
   }
   
-  Chat.Model.find(where).select('creator_id recipient_id').skip(offset).limit(limit).sort('-creator_id').exec(function(err, chats) {
+  Chat.Model.find(where).select('chat_id recipients').skip(offset).limit(limit).sort('-created_at').exec(function(err, chats) {
     if (err) { return next(err); }
     Chat.Model.count(where, function(err, count){
       if (err) { return next(err); }
@@ -52,25 +52,55 @@ router.get('/', function(req, res, next){
   });
 });
 
-/* start a new chat, or save new message */
-router.post('/', function(req, res, next) {
+/* start a new chat */
+router.post('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z]+)', function(req, res, next) {
     var User = require('../models/user'),
       Chat = require('../models/chat');
       
-    var creator_id = typeof(req.body.creator)!='undefined' ? req.body.creator : null;
-    var recipient_id = typeof(req.body.recipient)!='undefined' ? req.body.recipient : null;
+    var creatorId = req.params.creator;
+    var recipientId = req.params.recipient;
+    var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
+    var recipients = [creatorId, recipientId].sort();
+    var chatId = recipients.toString().hashCode();
+    
+    /* save chat */
+    /*console.log([chatId, creatorId, recipientId, recipients, message]);
+    res.status(200).json({'code': 0, 'error': null});
+    return;*/
+    Chat.Model.saveChat(chatId, creatorId, recipients, message, next);
+    
+    /* send notification to recipient */
+    socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
+    /* send notification to sender */
+    socket.notifyUser(creatorId, 'chat.sent', {
+      '_id': req.body._id
+      });
+    
+    /* send response */
+    res.status(200).json({'code': 0, 'error': null});
+})
+
+/* save a new message to old chat */
+router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9]+)', function(req, res, next) {
+    var User = require('../models/user'),
+      Chat = require('../models/chat');
+      
+    var creatorId = req.params.creator;
+    var chatId = req.params.chat_id;
     var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
     
     /* save chat */
-    Chat.Model.sendChat(creator_id, creator_id, recipient_id, message, next); // for sender
-    Chat.Model.sendChat(creator_id, recipient_id, creator_id, message, next); // for recipient
+    /*console.log([chatId, creatorId, message]);
+    res.status(200).json({'code': 0, 'error': null});
+    return;*/
+    Chat.Model.addMessage(chatId, creatorId, message, next);
     
     /* send notification to recipient */
-    socket.notifyUser(recipient_id, 'chat.new', { 'sender': creator_id, 'message': message, 'date': Date.now() });
+    //socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
     /* send notification to sender */
-    socket.notifyUser(creator_id, 'chat.sent', {
+    /*socket.notifyUser(creatorId, 'chat.sent', {
       '_id': req.body._id
-      });
+      });*/
     
     /* send response */
     res.status(200).json({'code': 0, 'error': null});
@@ -82,30 +112,36 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)', function(req, res, next) {
     Chat = require('../models/chat'),
     creator = req.params.creator,
     i, len=0, contacts=[],
-    lastMesg={};
+    lastMesgArr={};
     
-    Chat.Model.find({'creator_id':creator}, 'creator_id recipient_id last_mesg', function(err, chats) {
+    Chat.Model.find({'recipients':creator}, 'chat_id recipients created_at last_mesg', function(err, chats) {
       if (err) { return next(err); }
-      if (Array.isArray(chats)) { len = chats.length; } 
-      else { res.status(200).json({'code': 0, 'error': null}); return; }
-      for (i = 0; i < len; i++) {
-          contacts.push(chats[i].recipient_id);
-          lastMesg[ chats[i].recipient_id ] = chats[i].last_mesg;
+      if (Array.isArray(chats)) {
+        len = chats.length;
+        return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':chats});
+      } 
+      else {
+        return res.status(200).json({'code': 0, 'error': null});
+      }
+      
+      /*for (i = 0; i < len; i++) {
+          contacts.push(chats[i].recipients);
+          lastMesgArr[ chats[i].chat_id ] = chats[i].last_mesg;
       }
       User.find({}).select('username name location meta has_picture').in('username', contacts).exec(function(err, contacts){
           if (err) { return next(err); }
-          return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':lastMesg});
-      })
+          return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':lastMesgArr});
+      })*/
     });
 });
 
 /* fetch a  conversation history */
-router.get('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z0-9\-\_]+)', function(req, res, next) {
+router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
     Chat = require('../models/chat')
     creator = req.params.creator,
-    recipient = req.params.recipient;
-    Chat.Model.findOne({'creator_id':creator,'recipient_id':recipient}, function(err, chat) {
+    chatId = req.params.chat_id;
+    Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
       if (err) { return next(err); }
       else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
       res.status(200).json(chat.messages);

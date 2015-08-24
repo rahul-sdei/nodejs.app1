@@ -28,29 +28,30 @@ var chatMesgSchema = new Schema({
     created_at: {type: Date, default: Date.now}
 });
 var chatSchema = new Schema({
-  creator_id: {type: String, required: true, validate: nameValidator},
-  recipient_id: {type: String, required: true, validate: nameValidator},
+  chat_id: {type: Number, required: true, unique: true},
+  recipients: [{type: String, required: true, validate: nameValidator}],
   messages: [chatMesgSchema],
   last_mesg: {
     creator_id: {type: String, required: true, validate: nameValidator},
     message: {type: String, required: true},
     created_at: {type: Date, default: Date.now}
-  }
+  },
+  created_at: {type: Date, default: Date.now}
 });
-chatSchema.index({ creator_id: 1, recipient_id: 1}, { unique: true });
+/*chatSchema.index({ creator_id: 1, recipient_id: 1}, { unique: true });*/
 
 chatSchema.post('save', function(doc){
 });
 
-chatSchema.statics.sendChat = function(creator_id, sender_id, recipient_id, text, next) {
+chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next) {
   var Chat = this,
-    message = {'creator_id': creator_id, 'message': text, 'created_at': Date.now()};
-  Chat.findOne({'creator_id': sender_id, 'recipient_id': recipient_id}, function(err, chat1) {
+    message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
+  Chat.findOne({'chat_id': chatId}, function(err, chat1) {
     if (err) { return next(err); }
     else if ( chat1==null ) {
       var chat1 = new Chat({
-        'creator_id': sender_id,
-        'recipient_id': recipient_id,
+        'chat_id': chatId,
+        'recipients': recipients,
         'messages': [message]
       });
     } else {
@@ -59,6 +60,20 @@ chatSchema.statics.sendChat = function(creator_id, sender_id, recipient_id, text
     chat1.last_mesg = message;
     chat1.save(function(err) {
       if (err) { return next(err); }
+    });
+  });
+}
+
+chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
+  var Chat = this,
+    message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
+  Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
+    if (err) { return next(err); }
+    
+    chat1.messages.push(message);
+    chat1.last_mesg = message;
+    chat1.save(function(err) {
+      if (err) { next(err); return;}
     });
   });
 }
