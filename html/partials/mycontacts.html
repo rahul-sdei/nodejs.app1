@@ -13,7 +13,7 @@
   </div>
 </form>
 
-<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp">
+<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp" id="contact_{{user1._id}}">
   <div class="media">
   <div class="media-left" ng-if="true == user1.has_picture">
     <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">

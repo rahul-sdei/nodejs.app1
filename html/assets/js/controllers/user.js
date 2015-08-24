@@ -8,6 +8,10 @@ angular.module('myApp.user').config(['$routeProvider', function($routeProvider) 
     templateUrl: 'partials/login.html',
     controller: 'User'
   })
+  .when('/logout', {
+    templateUrl: 'partials/login.html',
+    controller: 'User'
+  })
   .otherwise({
     redirectTo: '/home'
   });
