@@ -3,6 +3,12 @@ var newObject = {},
  path = require('path');
 
 module.exports = function(dir) {
+    var newFiles = {
+	'images': [],
+	'audios': [],
+	'videos': []
+	};
+    
     newObject['resolvePath'] = function(next) {
         fs.realpath(dir, function(err, path) {
 	if (err) {
@@ -48,7 +54,50 @@ module.exports = function(dir) {
         });
     }
     
+    newObject['getNewFiles'] = function() {	
+	/* find images */
+	fs.readdir(dir + '/images', function(err, files){
+        if (err) {
+	    console.log(err);
+            return;
+        }
+	var tmpArr = [];
+	files.forEach(function(f){
+	    tmpArr.push(dir + '/images/' + f);
+	});
+	newFiles['images'] = tmpArr;
+	});
+	
+	/* find audios */
+	fs.readdir(dir + '/audios', function(err, files){
+        if (err) {
+	    console.log(err);
+            return;
+        }
+	var tmpArr = [];
+	files.forEach(function(f){
+	    tmpArr.push(dir + '/audios/' + f);
+	});
+	newFiles['audios'] = tmpArr;
+	});
+	
+	/* find videos */
+	fs.readdir(dir + '/videos', function(err, files){
+        if (err) {
+	    console.log(err);
+            return;
+        }
+	var tmpArr = [];
+	files.forEach(function(f){
+	    tmpArr.push(dir + '/videos/' + f);
+	});
+	newFiles['videos'] = tmpArr;
+	});
+    }
+    
     newObject['moveFiles'] = function(next) {
+	newObject.getNewFiles();
+	
         fs.readdir(dir, function(err, files){
         if (err) {
             next(e);
@@ -65,13 +114,16 @@ module.exports = function(dir) {
                 case '.png':
                 case '.gif':
                     var newPath = dir + '/images/' + f;
+		    newFiles['images'].push(newPath);
                     break;
                 case '.mp3':
                 case '.amr':
                     var newPath = dir + '/audios/' + f;
+		    newFiles['audios'].push(newPath);
                     break;
                 case '.mp4':
                     var newPath = dir + '/videos/' + f;
+		    newFiles['videos'].push(newPath);
                     break;
                 default:
                     return;
@@ -93,69 +145,21 @@ module.exports = function(dir) {
             i++;
             })
         
-            next(null);
+            next(null, newFiles);
         });
     }
     
-    newObject['listImages'] = function(next) {
-        console.log('Listing images...');
-        var src = dir + '/images';
-        fs.readdir(src, function(err, files){
-        if (err) {
-            return;
-        }
+    newObject['listFiles'] = function(files) {
         var i = 1;
         files.sort(function(a, b) {
-            return fs.statSync(src + '/' + a).size - 
-                   fs.statSync(src + '/' + b).size;
+            return fs.statSync(a).size - 
+                   fs.statSync(b).size;
         });
         files.forEach(function(f){
             console.log(i, f);
             i++;
             })
         console.log("\n");
-        next();
-        });
-    }
-    
-    newObject['listAudios'] = function(next) {
-        console.log('Listing audios...');
-        var src = dir + '/audios';
-        fs.readdir(src, function(err, files){
-        if (err) {
-            return;
-        }
-        var i = 1;
-        files.sort(function(a, b) {
-            return fs.statSync(src + '/' + a).size - 
-                   fs.statSync(src + '/' + b).size;
-        });
-        files.forEach(function(f){
-            console.log(i, f);
-            i++;
-            })
-        console.log("\n");
-        next();
-        });
-    }
-    
-    newObject['listVideos'] = function() {
-        console.log('Listing videos...');
-        var src = dir + '/videos';
-        fs.readdir(src, function(err, files){
-        if (err) {
-            return;
-        }
-        var i = 1;
-        files.sort(function(a, b) {
-            return fs.statSync(src + '/' + a).size - 
-                   fs.statSync(src + '/' + b).size;
-        });
-        files.forEach(function(f){
-            console.log(i, f);
-            i++;
-            })
-        });
     }
     
     return newObject;
