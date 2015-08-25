@@ -23,6 +23,7 @@ var nameValidator = [
 
 // create a schema
 var chatMesgSchema = new Schema({
+    chat_id: {type: Number, required: true},
     creator_id: {type: String, required: true, validate: nameValidator, index: true},
     message: {type: String, required: true},
     created_at: {type: Date, default: Date.now}
@@ -30,7 +31,7 @@ var chatMesgSchema = new Schema({
 var chatSchema = new Schema({
   chat_id: {type: Number, required: true, unique: true},
   recipients: [{type: String, required: true, validate: nameValidator}],
-  messages: [chatMesgSchema],
+  //messages: [chatMesgSchema],
   last_mesg: {
     creator_id: {type: String, required: true, validate: nameValidator},
     message: {type: String, required: true},
@@ -46,20 +47,32 @@ chatSchema.post('save', function(doc){
 chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next) {
   var Chat = this,
     message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
+  console.log('Chat.saveChat() called');
   Chat.findOne({'chat_id': chatId}, function(err, chat1) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     else if ( chat1==null ) {
+      console.log('Chat.saveChat() new chatId:', chatId);
       var chat1 = new Chat({
         'chat_id': chatId,
         'recipients': recipients,
-        'messages': [message]
+        'created_at': Date.now()
       });
     } else {
-      chat1.messages.push(message);
+      console.log('Chat.saveChat() old chatId:', chatId);
     }
     chat1.last_mesg = message;
+    //console.log(chat1);
     chat1.save(function(err) {
-      if (err) { return next(err); }
+      if (err) { next(err); return;}
+      console.log('Chat.saveChat() finished');
+      
+      message['chat_id'] = chatId;
+      console.log('Chat.addMessage() push new item');
+      var chatMesg = new ChatMesgModel(message);
+      chatMesg.save(function(err){
+        if (err) { next(err); return;}
+        console.log('Chat.addMessage() finished');
+        });
     });
   });
 }
@@ -67,13 +80,22 @@ chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next
 chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
   var Chat = this,
     message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
+  
+  console.log('Chat.addMessage() called');
   Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     
-    chat1.messages.push(message);
     chat1.last_mesg = message;
     chat1.save(function(err) {
       if (err) { next(err); return;}
+      
+      console.log('Chat.addMessage() push new item');
+      message['chat_id'] = chatId;
+      var chatMesg = new ChatMesgModel(message);
+      chatMesg.save(function(err){
+        if (err) { next(err); return;}
+        console.log('Chat.addMessage() finished');
+        });
     });
   });
 }

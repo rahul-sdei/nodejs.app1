@@ -53,7 +53,7 @@ router.get('/', function(req, res, next){
 });
 
 /* start a new chat */
-router.post('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z]+)', function(req, res, next) {
+router.post('/:creator([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
       Chat = require('../models/chat');
       
@@ -64,17 +64,17 @@ router.post('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z]+)', function(req, r
     var chatId = recipients.toString().hashCode();
     
     /* save chat */
-    /*console.log([chatId, creatorId, recipientId, recipients, message]);
-    res.status(200).json({'code': 0, 'error': null});
+    console.log('Chat.saveChat() calling', [chatId, creatorId, recipientId, recipients, message]);
+    /*res.status(200).json({'code': 0, 'error': null});
     return;*/
     Chat.Model.saveChat(chatId, creatorId, recipients, message, next);
     
     /* send notification to recipient */
-    socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
+    //socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
     /* send notification to sender */
-    socket.notifyUser(creatorId, 'chat.sent', {
-      '_id': req.body._id
-      });
+    //socket.notifyUser(creatorId, 'chat.sent', {
+      //'_id': req.body._id
+      //});
     
     /* send response */
     res.status(200).json({'code': 0, 'error': null});
@@ -142,9 +142,13 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res
     creator = req.params.creator,
     chatId = req.params.chat_id;
     Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
-      if (err) { return next(err); }
+      if (err) { next(err); return; }
       else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-      res.status(200).json(chat.messages);
+      Chat.MesgModel.find({'chat_id': chatId}, function(err, messages){
+        if (err) { next(err); return; }
+        res.status(200).json(messages);
+        });
+      
     });
 });
 
