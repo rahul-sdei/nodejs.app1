@@ -25,9 +25,9 @@ router.get('/', function(req, res, next){
   }
   
   Chat.Model.find(where).select('chat_id recipients').skip(offset).limit(limit).sort('-created_at').exec(function(err, chats) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     Chat.Model.count(where, function(err, count){
-      if (err) { return next(err); }
+      if (err) { next(err); return; }
       /* send count in headers */
         res.set('X-Total-Count', count);
         
@@ -154,22 +154,13 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)', function(req, res, next) {
       else {
         return res.status(200).json({'code': 0, 'error': null});
       }
-      
-      /*for (i = 0; i < len; i++) {
-          contacts.push(chats[i].recipients);
-          lastMesgArr[ chats[i].chat_id ] = chats[i].last_mesg;
-      }
-      User.find({}).select('username name location meta has_picture').in('username', contacts).exec(function(err, contacts){
-          if (err) { return next(err); }
-          return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':lastMesgArr});
-      })*/
     });
 });
 
 /* fetch a  conversation history */
 router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
-    Chat = require('../models/chat')
+    Chat = require('../models/chat'),
     creator = req.params.creator,
     chatId = req.params.chat_id;
     
@@ -187,14 +178,14 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res
     });
 });
 
-/* delete a conversation history */
+/* unsubscribe from chat history */
 router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
-    Chat = require('../models/chat')
+    Chat = require('../models/chat'),
     creator = req.params.creator,
     chatId = req.params.chat_id;
     
-    Chat.Model.removeRecipient(chatId, creator, function(err, chat) {
+    Chat.Model.removeRecipient(chatId, creator, creator, function(err, chat) {
       if (err) { next(err); return; }
       res.status(200).json({'code': 0, 'error': null});
     });
@@ -203,7 +194,7 @@ router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, 
 /* delete a single message */
 router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id', function(req, res, next) {
   var User = require('../models/user'),
-    Chat = require('../models/chat')
+    Chat = require('../models/chat'),
     creator = req.params.creator,
     chatId = req.params.chat_id,
     chatMesgId = req.params.id;
@@ -213,6 +204,34 @@ router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id', function(r
     res.status(200).json({'code': 0, 'error': null});
   })
   
+});
+
+/* add new recipient to old chat */
+router.put('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients', function(req, res, next) {
+  var User = require('../models/user'),
+   Chat = require('../models/chat'),
+   creator = req.params.creator,
+   chatId = req.params.chat_id,
+   recipient = req.body.username;
+   
+  Chat.Model.addRecipient(chatId, creator, recipient, function(err, chat) {
+      if (err) { next(err); return; }
+      res.status(200).json({'code': 0, 'error': null});
+    });
+});
+
+/* remove recipient from chat */
+router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipient([a-zA-Z0-9\-\_]+)', function(req, res, next) {
+    var User = require('../models/user'),
+     Chat = require('../models/chat'),
+     creator = req.params.creator,
+     chatId = req.params.chat_id,
+     recipient = req.params.recipient;
+    
+    Chat.Model.removeRecipient(chatId, creator, recipient, function(err, chat) {
+      if (err) { next(err); return; }
+      res.status(200).json({'code': 0, 'error': null});
+    });
 });
 
 return router;
