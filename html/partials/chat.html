@@ -55,7 +55,7 @@
     }
 </script>
 
-<h1>Chat with {{recipient.username}}</h1>
+<h1>{{formTitle}}</h1>
 
 <div id="chat_log">
     <p id="chat_{{chat['_id']}}" ng-repeat="chat in chats" ng-class="{'text-left': chat.creator_id === user.uname, 'text-right': chat.creator_id !== user.uname}">

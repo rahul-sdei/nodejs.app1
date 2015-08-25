@@ -16,10 +16,10 @@
 <div class="bs-callout bs-callout-info" ng-repeat="chat in chats | filter:query | orderBy:orderProp" id="history_{{chat.chat_id}}">
   <div class="media">
   <div class="media-left" ng-if="true == chat.chat_icon">
-    <img class="media-object" ng-src="../uploads/chat_{{chat.chat_id}}/icon?dim=64" alt="{{chat.chat_icon}}">
+    <img class="media-object" ng-src="../uploads/chat_icon?dim=64" alt="{{chat.chat_icon}}">
   </div>
   <div class="media-body">
-    <h4 class="media-heading">{{chat.recipients|toString}}
+    <h4 class="media-heading">{{chat.chat_name}}
         <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+chat.chat_id)">Chat</button>
         <button type="button" class="btn btn-danger" ng-click="deleteChat(chat.chat_id)">Delete</button>
     </h4>

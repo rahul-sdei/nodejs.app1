@@ -20,7 +20,7 @@
   </div>
   <div class="media-body">
     <h4 class="media-heading">{{user1.username}}
-        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+user1.username)">Chat</button>
+        <button type="button" class="btn btn-primary" ng-click="redirect('chat/new/'+user1.username)">Chat</button>
         <button type="button" class="btn btn-danger" ng-click="removeContact(user1._id)" ng-if="user['contacts'].indexOf(user1._id) > -1">Remove</button>
     </h4>
     {{user1.name}}, {{user1.meta.age}}, {{user1.location}}

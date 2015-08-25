@@ -30,6 +30,8 @@ var chatMesgSchema = new Schema({
 });
 var chatSchema = new Schema({
   chat_id: {type: Number, required: true, unique: true},
+  chat_name: {type: String, required: true},
+  chat_icon: {type: String, required: false},
   recipients: [{type: String, required: true, validate: nameValidator}],
   //messages: [chatMesgSchema],
   last_mesg: {
@@ -54,10 +56,14 @@ chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next
       console.log('Chat.saveChat() new chatId:', chatId);
       var chat1 = new Chat({
         'chat_id': chatId,
+        'chat_name': recipients.sort().toString(),
         'recipients': recipients,
         'created_at': Date.now()
       });
     } else {
+      /* update recipients list to add removed user again */
+      chat1.recipients = recipients;
+      chat1.chat_name = recipients.sort().toString();
       console.log('Chat.saveChat() old chatId:', chatId);
     }
     chat1.last_mesg = message;
@@ -72,6 +78,7 @@ chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next
       chatMesg.save(function(err){
         if (err) { next(err); return;}
         console.log('Chat.addMessage() finished');
+        next(null);
         });
     });
   });
@@ -84,7 +91,14 @@ chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
   console.log('Chat.addMessage() called');
   Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
     if (err) { next(err); return; }
-    
+    else if ( chat1==null ) {
+      next({
+        "err": 'Chat Object not found',
+        "code": 404
+        });
+      return;
+    }
+    //chat1.chat_name = chat1.recipients.sort().toString();
     chat1.last_mesg = message;
     chat1.save(function(err) {
       if (err) { next(err); return;}
@@ -95,7 +109,36 @@ chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
       chatMesg.save(function(err){
         if (err) { next(err); return;}
         console.log('Chat.addMessage() finished');
+        
+        next(null, chat1.recipients);
         });
+    });
+  });
+}
+
+chatSchema.statics.removeRecipient = function(chatId, userId, next) {
+  var Chat = this;
+  
+  Chat.findOne({'chat_id': chatId, 'recipients': userId}, function(err, chat1) {
+    if (err) { next(err); return; }
+    else if ( chat1==null ) {
+      next({
+        "err": 'Chat Object not found',
+        "code": 404
+        });
+      return;
+    }
+    
+    for (i in chat1.recipients) {
+      if (chat1.recipients[i] === userId) {
+        chat1.recipients.splice(i, 1);
+      }
+    }
+    
+    chat1.save(function(err) {
+      if (err) { next(err); return;}
+      
+      next(null);
     });
   });
 }

@@ -42,11 +42,12 @@ angular.module('myApp.chat').controller('Chat',
   $http.get('/users/' + $routeParams.uname)
         .success(function(data) {
           $scope.recipient = data;
-          getConversation();
+	  $scope.formTitle = 'Start chat with ' + data['username'];
+          //getConversation();
           console.log(data);
         })
         .error(function(data) {
-	  $location.path('home');
+	  $location.path('search/history');
           console.log('Error: ' + data);
         });
     }
@@ -54,8 +55,10 @@ angular.module('myApp.chat').controller('Chat',
     function getConversation() {
     $http.get('/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id)
         .success(function(data) {
-          $scope.chats = data;
           console.log(data);
+          $scope.chats = data['history'];
+	  $scope.chatObject = data['chat'];
+	  $scope.formTitle = 'Chat with ' + data['chat'] ['chat_name'];
         })
         .error(function(data) {
           console.log('Error: ' + data);
@@ -77,7 +80,7 @@ angular.module('myApp.chat').controller('Chat',
 	  /* Send to web api */
 	  var postUrl = null;
 	  if (isNewChat) {
-	    postUrl = '/chats/' + $scope.user['uname'] + '/' + $scope.recipient['uname'];
+	    postUrl = '/chats/' + $scope.user['uname'] + '/' + $scope.recipient['username'];
 	  } else {
 	    postUrl = '/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id;
 	  }

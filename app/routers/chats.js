@@ -67,21 +67,37 @@ router.post('/:creator([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-
     console.log('Chat.saveChat() calling', [chatId, creatorId, recipientId, recipients, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.saveChat(chatId, creatorId, recipients, message, next);
+    Chat.Model.saveChat(chatId, creatorId, recipients, message, function(err){
+      if (err) {
+        next(err);
+        return;
+      }
+      
+      /* throw notifications */
+      for (i in recipients) {
+        if (recipients[i]==creatorId) {
+          /* send notification to sender */
+          socket.notifyUser(creatorId, 'chat.sent', {
+            '_id': req.body._id
+            });
+        } else {
+          /* send notification to recipient */
+          socket.notifyUser(recipients[i], 'chat.new', {
+            'sender': creatorId,
+            'message': message,
+            'date': Date.now()
+            });
+        }
+      }
+      
+      /* send response */
+      res.status(200).json({'code': 0, 'error': null});
+    });
     
-    /* send notification to recipient */
-    //socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
-    /* send notification to sender */
-    //socket.notifyUser(creatorId, 'chat.sent', {
-      //'_id': req.body._id
-      //});
-    
-    /* send response */
-    res.status(200).json({'code': 0, 'error': null});
 })
 
 /* save a new message to old chat */
-router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9]+)', function(req, res, next) {
+router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
       Chat = require('../models/chat');
       
@@ -90,20 +106,35 @@ router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9]+)', function(req, res, n
     var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
     
     /* save chat */
-    /*console.log([chatId, creatorId, message]);
-    res.status(200).json({'code': 0, 'error': null});
+    console.log('Chat.addMessage() calling', [chatId, creatorId, message]);
+    /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.addMessage(chatId, creatorId, message, next);
-    
-    /* send notification to recipient */
-    //socket.notifyUser(recipientId, 'chat.new', { 'sender': creatorId, 'message': message, 'date': Date.now() });
-    /* send notification to sender */
-    /*socket.notifyUser(creatorId, 'chat.sent', {
-      '_id': req.body._id
-      });*/
-    
-    /* send response */
-    res.status(200).json({'code': 0, 'error': null});
+    Chat.Model.addMessage(chatId, creatorId, message, function(err, recipients){
+      if (err) {
+        next(err);
+        return;
+      }
+      
+      /* throw notifications */
+      for (i in recipients) {
+        if (recipients[i]==creatorId) {
+          /* send notification to sender */
+          socket.notifyUser(creatorId, 'chat.sent', {
+            '_id': req.body._id
+            });
+        } else {
+          /* send notification to recipient */
+          socket.notifyUser(recipients[i], 'chat.new', {
+            'sender': creatorId,
+            'message': message,
+            'date': Date.now()
+            });
+        }
+      }
+      
+      /* send response */
+      res.status(200).json({'code': 0, 'error': null});
+    });
 })
 
 /* list convesations for a user */
@@ -114,7 +145,7 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)', function(req, res, next) {
     i, len=0, contacts=[],
     lastMesgArr={};
     
-    Chat.Model.find({'recipients':creator}, 'chat_id recipients created_at last_mesg', function(err, chats) {
+    Chat.Model.find({'recipients':creator}).select('chat_id chat_name chat_icon recipients created_at last_mesg').sort('-last_mesg.created_at').exec(function(err, chats) {
       if (err) { return next(err); }
       if (Array.isArray(chats)) {
         len = chats.length;
@@ -141,51 +172,45 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res
     Chat = require('../models/chat')
     creator = req.params.creator,
     chatId = req.params.chat_id;
+    
     Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
       if (err) { next(err); return; }
       else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
       Chat.MesgModel.find({'chat_id': chatId}, function(err, messages){
         if (err) { next(err); return; }
-        res.status(200).json(messages);
+        res.status(200).json({
+          'history': messages,
+          'chat': chat
+          });
         });
       
     });
 });
 
 /* delete a conversation history */
-router.delete('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z0-9\-\_]+)', function(req, res, next) {
+router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
     var User = require('../models/user'),
     Chat = require('../models/chat')
     creator = req.params.creator,
-    recipient = req.params.recipient;
-    Chat.Model.findOne({'creator_id':creator,'recipient_id':recipient}, function(err, chat) {
-      if (err) { return next(err); }
-      else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-      chat.remove(function(err){
-          if ( err ) { return next(err); }
-          res.status(200).json({'code': 0, 'error': null});
-      })
+    chatId = req.params.chat_id;
+    
+    Chat.Model.removeRecipient(chatId, creator, function(err, chat) {
+      if (err) { next(err); return; }
+      res.status(200).json({'code': 0, 'error': null});
     });
 });
 
 /* delete a single message */
-router.delete('/:creator([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z0-9\-\_]+)/:id', function(req, res, next) {
+router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id', function(req, res, next) {
   var User = require('../models/user'),
     Chat = require('../models/chat')
     creator = req.params.creator,
-    recipient = req.params.recipient,
+    chatId = req.params.chat_id,
     chatMesgId = req.params.id;
   
-  Chat.Model.findOne({'creator_id':creator,'recipient_id':recipient}, function(err, chat) {
-    if (err) { return next(err); }
-    else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-    var chatMesg = chat.messages.id(chatMesgId);
-    if ( chatMesg == null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-    chatMesg.remove();
-    chat.save(function(err) {
-      if (err) { return next(err); }
-      res.status(200).json({'code': 0, 'error': null});
-    });
+  Chat.MesgModel.remove({'creator_id':creator,'chat_id':chatId,'_id':chatMesgId}, function(err, chat) {
+    if (err) { next(err); return; }
+    res.status(200).json({'code': 0, 'error': null});
   })
   
 });
