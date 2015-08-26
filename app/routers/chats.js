@@ -25,7 +25,7 @@ router.get('/', auth.isAdministrator, function(req, res, next){
     if ( typeof (search.recipient)!='undefined' ) { where['recipient_id'] =new RegExp(search.recipient, 'i'); }
   }
   
-  Chat.Model.find(where).select('chat_id recipients').skip(offset).limit(limit).sort('-created_at').exec(function(err, chats) {
+  Chat.Model.find(where).select('chat_id chat_name chat_icon recipients created_at last_mesg').skip(offset).limit(limit).sort('-created_at').exec(function(err, chats) {
     if (err) { next(err); return; }
     Chat.Model.count(where, function(err, count){
       if (err) { next(err); return; }
@@ -53,6 +53,80 @@ router.get('/', auth.isAdministrator, function(req, res, next){
   });
 });
 
+/* list convesations for a user */
+router.get('/:uname([a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
+    var User = require('../models/user'),
+    Chat = require('../models/chat'),
+    creator = req.params.uname,
+    i, len=0, contacts=[],
+    lastMesgArr={};
+    
+    Chat.Model.find({'recipients':creator}).select('chat_id chat_name chat_icon recipients created_at last_mesg').sort('-last_mesg.created_at').exec(function(err, chats) {
+      if (err) { return next(err); }
+      if (Array.isArray(chats)) {
+        len = chats.length;
+        return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':chats});
+      } 
+      else {
+        return res.status(200).json({'code': 0, 'error': null});
+      }
+    });
+});
+
+/* start a new chat with multiple recipients */
+router.post('/:uname([a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
+    console.log(req.body);
+    var User = require('../models/user'),
+      Chat = require('../models/chat'),
+      creatorId = req.params.uname,
+      message = req.body.message,
+      recipients = req.body.recipients,
+      chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode();
+    
+    recipients.unshift(creatorId);
+      
+    /* save chat */
+    console.log('Chat.saveChat() calling', [chatId, creatorId, recipients, message]);
+    /*res.status(200).json({'code': 0, 'error': null});
+    return;*/
+    Chat.Model.saveChat(chatId, creatorId, recipients, message, function(err){
+      if (err) {
+        next(err);
+        return;
+      }
+      
+      /* send response */
+      res.status(200).json({'code': 0, 'error': null});
+    });
+});
+
+/* list convesations for a user with recipient */
+router.get('/:uname([a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
+    var User = require('../models/user'),
+    Chat = require('../models/chat'),
+    creator = req.params.uname,
+    recipient = req.params.recipient,
+    i, len=0, contacts=[],
+    lastMesgArr={};
+    
+    Chat.Model.find({'recipients': {$all: [creator, recipient]}}).select('chat_id chat_name chat_icon recipients created_at last_mesg').sort('-last_mesg.created_at').exec(function(err, chats) {
+      if (err) { return next(err); }
+      if (Array.isArray(chats)) {
+        len = chats.length;
+        return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':chats});
+      } 
+      else {
+        return res.status(200).json({'code': 0, 'error': null});
+      }
+    });
+});
+
 /* start a new chat */
 router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_]+)',
   auth.canEditUser,
@@ -64,7 +138,7 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
     var recipientId = req.params.recipient;
     var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
     var recipients = [creatorId, recipientId].sort();
-    var chatId = recipients.toString().hashCode();
+    var chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode();
     
     /* save chat */
     console.log('Chat.saveChat() calling', [chatId, creatorId, recipientId, recipients, message]);
@@ -98,6 +172,29 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
     });
     
 })
+
+/* fetch a  conversation history */
+router.get('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
+    var User = require('../models/user'),
+    Chat = require('../models/chat'),
+    creator = req.params.uname,
+    chatId = req.params.chat_id;
+    
+    Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
+      if (err) { next(err); return; }
+      else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
+      Chat.MesgModel.find({'chat_id': chatId}, function(err, messages){
+        if (err) { next(err); return; }
+        res.status(200).json({
+          'history': messages,
+          'chat': chat
+          });
+        });
+      
+    });
+});
 
 /* save a new message to old chat */
 router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
@@ -140,51 +237,35 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
       /* send response */
       res.status(200).json({'code': 0, 'error': null});
     });
-})
-
-/* list convesations for a user */
-router.get('/:uname([a-zA-Z0-9\-\_]+)',
-  auth.canEditUser,
-  function(req, res, next) {
-    var User = require('../models/user'),
-    Chat = require('../models/chat'),
-    creator = req.params.uname,
-    i, len=0, contacts=[],
-    lastMesgArr={};
-    
-    Chat.Model.find({'recipients':creator}).select('chat_id chat_name chat_icon recipients created_at last_mesg').sort('-last_mesg.created_at').exec(function(err, chats) {
-      if (err) { return next(err); }
-      if (Array.isArray(chats)) {
-        len = chats.length;
-        return res.status(200).json({'code': 0, 'error': null, 'data':contacts, 'chats':chats});
-      } 
-      else {
-        return res.status(200).json({'code': 0, 'error': null});
-      }
-    });
 });
 
-/* fetch a  conversation history */
-router.get('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
+/* update chat object specific details */
+router.put('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
   auth.canEditUser,
   function(req, res, next) {
     var User = require('../models/user'),
-    Chat = require('../models/chat'),
-    creator = req.params.uname,
-    chatId = req.params.chat_id;
+      Chat = require('../models/chat'),
+      creatorId = req.params.uname,
+      chatId = req.params.chat_id,
+      chatTitle = req.body.chat_title;
     
-    Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
+    Chat.Model.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1){
       if (err) { next(err); return; }
-      else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-      Chat.MesgModel.find({'chat_id': chatId}, function(err, messages){
-        if (err) { next(err); return; }
-        res.status(200).json({
-          'history': messages,
-          'chat': chat
+      else if ( chat1==null ) {
+        next({
+          "err": 'Chat Object not found',
+          "code": 404
           });
-        });
+        return;
+      }
+      chat1.chat_name = chatTitle;
+      chat1.save(function(err) {
+      if (err) { next(err); return;}
       
-    });
+      /* send response */
+      res.status(200).json({'code': 0, 'error': null});
+      });
+    })
 });
 
 /* unsubscribe from chat history */
