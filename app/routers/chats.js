@@ -1,9 +1,10 @@
-var express = require('express');
-var router = express.Router();
+var express = require('express'),
+ router = express.Router(),
+  auth = require('../modules/auth');
 
 module.exports = function(socket){
     
-router.get('/', function(req, res, next){
+router.get('/', auth.isAdministrator, function(req, res, next){
   var User = require('../models/user'),
     Chat = require('../models/chat');
       
@@ -53,11 +54,13 @@ router.get('/', function(req, res, next){
 });
 
 /* start a new chat */
-router.post('/:creator([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_]+)', function(req, res, next) {
+router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
     var User = require('../models/user'),
       Chat = require('../models/chat');
       
-    var creatorId = req.params.creator;
+    var creatorId = req.params.uname;
     var recipientId = req.params.recipient;
     var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
     var recipients = [creatorId, recipientId].sort();
@@ -97,11 +100,13 @@ router.post('/:creator([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-
 })
 
 /* save a new message to old chat */
-router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
+router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
     var User = require('../models/user'),
       Chat = require('../models/chat');
       
-    var creatorId = req.params.creator;
+    var creatorId = req.params.uname;
     var chatId = req.params.chat_id;
     var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
     
@@ -138,10 +143,12 @@ router.post('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, re
 })
 
 /* list convesations for a user */
-router.get('/:creator([a-zA-Z0-9\-\_]+)', function(req, res, next) {
+router.get('/:uname([a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
     var User = require('../models/user'),
     Chat = require('../models/chat'),
-    creator = req.params.creator,
+    creator = req.params.uname,
     i, len=0, contacts=[],
     lastMesgArr={};
     
@@ -158,10 +165,12 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)', function(req, res, next) {
 });
 
 /* fetch a  conversation history */
-router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
+router.get('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
     var User = require('../models/user'),
     Chat = require('../models/chat'),
-    creator = req.params.creator,
+    creator = req.params.uname,
     chatId = req.params.chat_id;
     
     Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
@@ -179,10 +188,12 @@ router.get('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res
 });
 
 /* unsubscribe from chat history */
-router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, res, next) {
+router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
     var User = require('../models/user'),
     Chat = require('../models/chat'),
-    creator = req.params.creator,
+    creator = req.params.uname,
     chatId = req.params.chat_id;
     
     Chat.Model.removeRecipient(chatId, creator, creator, function(err, chat) {
@@ -192,10 +203,12 @@ router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)', function(req, 
 });
 
 /* delete a single message */
-router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id', function(req, res, next) {
+router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id',
+  auth.canEditUser,
+  function(req, res, next) {
   var User = require('../models/user'),
     Chat = require('../models/chat'),
-    creator = req.params.creator,
+    creator = req.params.uname,
     chatId = req.params.chat_id,
     chatMesgId = req.params.id;
   
@@ -207,12 +220,14 @@ router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id', function(r
 });
 
 /* add new recipient to old chat */
-router.put('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients', function(req, res, next) {
+router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipient([a-zA-Z0-9\-\_]+)',
+  auth.canEditUser,
+  function(req, res, next) {
   var User = require('../models/user'),
    Chat = require('../models/chat'),
-   creator = req.params.creator,
+   creator = req.params.uname,
    chatId = req.params.chat_id,
-   recipient = req.body.username;
+   recipient = req.params.recipient;
    
   Chat.Model.addRecipient(chatId, creator, recipient, function(err, chat) {
       if (err) { next(err); return; }
@@ -221,10 +236,12 @@ router.put('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients', functi
 });
 
 /* remove recipient from chat */
-router.delete('/:creator([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipient([a-zA-Z0-9\-\_]+)', function(req, res, next) {
+router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipient([a-zA-Z0-9\-\_]+)',
+    auth.canEditUser,
+    function(req, res, next) {
     var User = require('../models/user'),
      Chat = require('../models/chat'),
-     creator = req.params.creator,
+     creator = req.params.uname,
      chatId = req.params.chat_id,
      recipient = req.params.recipient;
     
