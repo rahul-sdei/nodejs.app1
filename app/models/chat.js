@@ -46,7 +46,7 @@ var chatSchema = new Schema({
 chatSchema.post('save', function(doc){
 });
 
-chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next) {
+chatSchema.statics.saveChat = function(chatId, chatTitle, creatorId, recipients, text, next) {
   var Chat = this,
     message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
   console.log('Chat.saveChat() called');
@@ -56,7 +56,7 @@ chatSchema.statics.saveChat = function(chatId, creatorId, recipients, text, next
       console.log('Chat.saveChat() new chatId:', chatId);
       var chat1 = new Chat({
         'chat_id': chatId,
-        'chat_name': recipients.sort().toString(),
+        'chat_name': chatTitle,
         'recipients': recipients,
         'created_at': Date.now()
       });

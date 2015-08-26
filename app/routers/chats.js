@@ -85,15 +85,16 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
       creatorId = req.params.uname,
       message = req.body.message,
       recipients = req.body.recipients,
-      chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode();
+      chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
+      chatTitle = typeof(req.body.chat_title)!='undefined' ? req.body.chat_title : recipients.sort().toString();
     
     recipients.unshift(creatorId);
       
     /* save chat */
-    console.log('Chat.saveChat() calling', [chatId, creatorId, recipients, message]);
+    console.log('Chat.saveChat() calling', [chatId, chatTitle, creatorId, recipients, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.saveChat(chatId, creatorId, recipients, message, function(err){
+    Chat.Model.saveChat(chatId, chatTitle, creatorId, recipients, message, function(err){
       if (err) {
         next(err);
         return;
@@ -132,19 +133,19 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
   auth.canEditUser,
   function(req, res, next) {
     var User = require('../models/user'),
-      Chat = require('../models/chat');
-      
-    var creatorId = req.params.uname;
-    var recipientId = req.params.recipient;
-    var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
-    var recipients = [creatorId, recipientId].sort();
-    var chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode();
+     Chat = require('../models/chat'), 
+     creatorId = req.params.uname,
+     recipientId = req.params.recipient,
+     message = typeof(req.body.message)!='undefined' ? req.body.message : null,
+     recipients = [creatorId, recipientId].sort(),
+     chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
+     chatTitle = typeof(req.body.chat_title)!='undefined' ? req.body.chat_title : recipients.sort().toString();
     
     /* save chat */
-    console.log('Chat.saveChat() calling', [chatId, creatorId, recipientId, recipients, message]);
+    console.log('Chat.saveChat() calling', [chatId, chatTitle, creatorId, recipientId, recipients, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.saveChat(chatId, creatorId, recipients, message, function(err){
+    Chat.Model.saveChat(chatId, chatTitle, creatorId, recipients, message, function(err){
       if (err) {
         next(err);
         return;
