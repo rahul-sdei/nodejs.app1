@@ -92,8 +92,12 @@ angular.module('myApp.chat').controller('Chat',
 	  .error(function(data) {
 	    console.log('Error: ' + data);
 	  });
-	});
-        
+	});  
+    };
+    
+    $scope.removeRecipient = function(recipient) {
+      console.log('Remove recipient:', recipient);
+      removeArrValue($scope.chatObject.recipients, recipient);
     };
 }]);
 

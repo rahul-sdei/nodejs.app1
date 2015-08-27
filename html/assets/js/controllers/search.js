@@ -62,42 +62,45 @@ angular.module('myApp.search').controller('Search',
         });
     }
     
-    $scope.addContact = function(uid) {
-      $http.post('/users/' + $scope.user['uname'] + '/contacts', { 'ulist': [ uid ] })
+    $scope.addContact = function(uname) {
+      $http.post('/users/' + $scope.user['uname'] + '/contacts', { 'ulist': [ uname ] })
       .success(function(data) {
 	console.log(data);
 	/* add new contact to $scope */
-	$scope.user['contacts'].push(uid);
+	$scope.user['contacts'].push(uname);
       })
       .error(function(data) {
 	console.log('Error: ' + data);
       });
     };
     
-    $scope.removeContact = function(uid) {
-      $http.delete('/users/' + $scope.user['uname'] + '/contacts/' + uid)
+    $scope.removeContact = function(uname) {
+      $http.delete('/users/' + $scope.user['uname'] + '/contacts/' + uname)
       .success(function(data) {
 	console.log(data);
 	/* remove contact from $scope */
-	for(i in $scope.user['contacts']) {
-	  if ($scope.user['contacts'] [i] === uid) {
-	    delete $scope.user['contacts'] [i];
+	removeArrValue($scope.user['contacts'], uname);
+	for (var i in $scope['users']) {
+	  if ($scope['users'][i]['username'] === uname) {
+	    $scope['users'].splice(i, 1);
 	  }
 	}
-	/* remove relevant html block */
-	jQuery('#contact_' + uid).remove();
       })
       .error(function(data) {
 	console.log('Error: ' + data);
       });
     };
     
-    $scope.deleteChat = function(recipient) {
-      $http.delete('/chats/' + $scope.user['uname'] + '/' + recipient)
+    $scope.deleteChat = function(chatId) {
+      $http.delete('/chats/' + $scope.user['uname'] + '/' + chatId)
       .success(function(data) {
 	console.log(data);
 	/* remove relevant html block */
-	jQuery('#history_' + recipient).remove();
+	for (var i in $scope['chats']) {
+	  if ($scope['chats'][i]['chat_id'] === chatId) {
+	    $scope['chats'].splice(i, 1);
+	  }
+	}
       })
       .error(function(data) {
 	console.log('Error: ' + data);

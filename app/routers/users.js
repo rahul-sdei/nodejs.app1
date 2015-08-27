@@ -266,10 +266,10 @@ router.get('/:uname([a-zA-Z0-9\-\_]+)/contacts', auth.canEditUser, function(req,
     uname = req.params.uname;
     
     User.findOne({'username':uname}, function(err, user) {
-      if (err) { return next(err); }
+      if (err) { next(err); return; }
       else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
     
-      User.find({}).select('username name location meta has_picture').in('_id', user.contacts).exec(function(err, contacts){
+      User.find({}).select('username name location meta has_picture').in('username', user.contacts).exec(function(err, contacts){
           if (err) { return next(err); }
           return res.status(200).json({'code': 0, 'error': null, 'data':contacts});
       })
@@ -284,24 +284,20 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/contacts', auth.canEditUser, function(req
     i, len = 0,
     ulist = typeof req.body.ulist !=='object' ? JSON.parse(req.body.ulist) : req.body.ulist;
     
-  User.findOne({'username':uname}, function(err, user) {
-    if (err) { return next(err); }
-    else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-    if (Array.isArray(ulist)) { len = ulist.length; } 
-    else { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
+  if (Array.isArray(ulist)) { len = ulist.length; } 
+  else { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
+  
+  User.findOneAndUpdate({'username':uname},
+    {'$addToSet': {'contacts': {'$each': ulist} } },
+    function(err, user) {
+    if (err) { next(err); return; }
     
-    for (i = 0; i < len; i++) {
-        user.contacts.push( mongoose.Types.ObjectId(ulist[i]) );
-    }
-    user.save(function(err){
-      if ( err ) { return next(err); }
-      res.status(200).json({'code': 0, 'error': null});
-    })
+    res.status(200).json({'code': 0, 'error': null});
   })
 });
 
 /* Remove a contact */
-router.delete('/:uname([a-zA-Z0-9\-\_]+)/contacts/:id([a-z0-9]+)', auth.canEditUser, function(req, res, next) {
+router.delete('/:uname([a-zA-Z0-9\-\_]+)/contacts/:id([a-zA-Z0-9\-\_]+)', auth.canEditUser, function(req, res, next) {
   var User = require('../models/user'),
   mongoose = require('mongoose'),
   uname = req.params.uname,
@@ -310,21 +306,21 @@ router.delete('/:uname([a-zA-Z0-9\-\_]+)/contacts/:id([a-z0-9]+)', auth.canEditU
   
   console.log('Remove conact: ' + id + ' for "'+uname+'"');
   User.findOne({'username':uname}, function(err, user) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   
     var ulist = user.contacts;
     if (Array.isArray(ulist)) { len = ulist.length; } 
     else { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
     for (i = 0; i < len; i++) {
-      if ( ulist[i]==id ) {
+      if ( ulist[i]===id ) {
         console.log('Deleting "'+ulist[i]+'"');
         ulist.splice(i, 1);
       }
     }
     user.contacts = ulist;
     user.save(function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       res.status(200).json({'code': 0, 'error': null});
     })
   })
@@ -337,10 +333,10 @@ router.delete('/:uname([a-zA-Z\-\_]+)', auth.isAdministrator, function(req, res,
   
   console.log('Delete user by name: ' + uname);
   User.findOne({'username':uname}, function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   user.remove(function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       res.status(200).json({'code': 0, 'error': null});
   })
   })
@@ -354,10 +350,10 @@ router.delete('/:id([a-z0-9]+)', auth.isAdministrator, function(req, res, next) 
   
   console.log('Delete user by id: ' + id);
   User.findById(id, function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   user.remove(function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       res.status(200).json({'code': 0, 'error': null});
   })
   })

@@ -55,7 +55,10 @@
     }
 </script>
 
-<h1>{{formTitle}}</h1>
+
+<h1>
+    <span ng-bind="formTitle"></span>
+</h1>
 
 <div id="chat_log">
     <p id="chat_{{chat['_id']}}" ng-repeat="chat in chats" ng-class="{'text-left': chat.creator_id === user.uname, 'text-right': chat.creator_id !== user.uname}">
@@ -70,7 +73,23 @@
     <label for="exampleInputEmail1">Type your message</label>
     <textarea class="form-control" rows="3" ng-model="formData.text"></textarea>
   </div>
+  
+  <div class="form-group">
+    <label>Recipients</label>
+    <p class="form-control-static">
+    <button type="button"
+       class="btn btn-primary btn-xs glyphicon glyphicon-remove"
+       style="margin-right:5px;"
+       ng-repeat="recipient in chatObject.recipients"
+       ng-click="removeRecipient(recipient)"
+       ng-if="recipient !== user.uname">
+      <span ng-bind="recipient" ></span>
+    </button>
+    </p>
+  </div>
+  
   <button type="submit" class="btn btn-success">Submit</button>
 </form>
+
 
 <ng-include src="tplSidebar"></ng-include>

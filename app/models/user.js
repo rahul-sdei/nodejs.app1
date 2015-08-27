@@ -44,7 +44,7 @@ var userSchema = new Schema({
   updated_at: Date,
   login_attempts: { type: Number, required: true, 'default': 0 },
   lock_until: { type: Number },
-  contacts: [Schema.Types.ObjectId]
+  contacts: [{type: String, unique: true, validate: nameValidator}]
 });
 
 // custom method to add string to end of name
