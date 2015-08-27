@@ -79,7 +79,7 @@ angular.module('myApp.search').controller('Search',
       .success(function(data) {
 	console.log(data);
 	/* remove contact from $scope */
-	removeArrValue($scope.user['contacts'], uname);
+	$scope.user['contacts'].removeVal(uname);
 	for (var i in $scope['users']) {
 	  if ($scope['users'][i]['username'] === uname) {
 	    $scope['users'].splice(i, 1);

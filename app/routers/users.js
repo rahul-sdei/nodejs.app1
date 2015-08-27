@@ -289,7 +289,7 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/contacts', auth.canEditUser, function(req
   
   User.findOneAndUpdate({'username':uname},
     {'$addToSet': {'contacts': {'$each': ulist} } },
-    function(err, user) {
+    function(err) {
     if (err) { next(err); return; }
     
     res.status(200).json({'code': 0, 'error': null});

@@ -18,6 +18,7 @@ angular.module('myApp.chat').controller('Chat',
     $scope.recipient = {};
     $scope.chats = [];
     $scope.formData = {};
+    $scope.states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Dakota', 'North Carolina', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
     
     var isNewChat = $route.current.$$route.isNewChat;
    
@@ -58,6 +59,8 @@ angular.module('myApp.chat').controller('Chat',
           console.log(data);
           $scope.chats = data['history'];
 	  $scope.chatObject = data['chat'];
+	  $scope.chatObject.recipients.removeVal($scope.user['uname']);
+	  console.log($scope.chatObject.recipients);
 	  $scope.formTitle = 'Chat with ' + data['chat'] ['chat_name'];
         })
         .error(function(data) {
@@ -95,9 +98,28 @@ angular.module('myApp.chat').controller('Chat',
 	});  
     };
     
+    $scope.addRecipient = function() {
+      var recipients = $scope.formData['recipients']
+       .split(',')
+       .map(function(input){
+	return input.trim();
+	}),
+       postData = {'recipients': recipients};
+      console.log('Adding recipients:', recipients);
+      $http.post('/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id + '/recipients', postData)
+       .success(function(data){
+	console.log(data);
+       })
+       .error(function(data) {
+	console.log('Error: ' + data);
+       });
+      $scope.formData = {}; // clear the form so our user is ready to enter another
+      $scope.chatObject.recipients = $scope.chatObject.recipients.concat(recipients);
+    }
+    
     $scope.removeRecipient = function(recipient) {
       console.log('Remove recipient:', recipient);
-      removeArrValue($scope.chatObject.recipients, recipient);
+      $scope.chatObject.recipients.removeVal(recipient);
     };
 }]);
 

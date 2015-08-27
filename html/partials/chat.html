@@ -68,13 +68,13 @@
     </p>
 </div>
 
-<form ng-submit="sendChat()">
+<form >
   <div class="form-group">
     <label for="exampleInputEmail1">Type your message</label>
     <textarea class="form-control" rows="3" ng-model="formData.text"></textarea>
   </div>
   
-  <div class="form-group">
+  <div class="form-group" ng-if="chatObject.recipients.length > 0">
     <label>Recipients</label>
     <p class="form-control-static">
     <button type="button"
@@ -88,7 +88,13 @@
     </p>
   </div>
   
-  <button type="submit" class="btn btn-success">Submit</button>
+  <div class="form-group">
+    <label>Add recipient</label>
+    <input type="text" class="form-control" ng-model="formData.recipients" />
+    <p class="help-block">Type comma separated values for multiple names</p>
+  </div>
+  <button type="button" class="btn btn-success" ng-click="addRecipient()">Submit</button>
+  
 </form>
 
 

@@ -18,7 +18,8 @@
     "multer": "^0.1.8",
     "quickthumb": "latest",
     "passport": "latest",
-    "passport-local": "latest"
+    "passport-local": "latest",
+    "bower": "latest"
   },
   "env": {
     "PYTHON": "/usr/bin/python2.7"

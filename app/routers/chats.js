@@ -248,25 +248,20 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
       Chat = require('../models/chat'),
       creatorId = req.params.uname,
       chatId = req.params.chat_id,
-      chatTitle = req.body.chat_title;
+      chatTitle = req.body.chat_title,
+      recipients = typeof req.body.recipients !=='object' ? JSON.parse(req.body.recipients) : req.body.recipients;
     
-    Chat.Model.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1){
+    if (!Array.isArray(recipients)) { recipients = []; } 
+    Chat.Model.findOneAndUpdate({'chat_id': chatId, 'recipients': creatorId},
+      { '$set': {'chat_name': chatTitle},
+        '$addToSet': {'recipients': {'$each': recipients} }
+      },
+      function(err){
       if (err) { next(err); return; }
-      else if ( chat1==null ) {
-        next({
-          "err": 'Chat Object not found',
-          "code": 404
-          });
-        return;
-      }
-      chat1.chat_name = chatTitle;
-      chat1.save(function(err) {
-      if (err) { next(err); return;}
       
       /* send response */
       res.status(200).json({'code': 0, 'error': null});
-      });
-    })
+    });
 });
 
 /* unsubscribe from chat history */
@@ -299,6 +294,31 @@ router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/:id',
     res.status(200).json({'code': 0, 'error': null});
   })
   
+});
+
+/* add multiple recipients to old chat */
+router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients',
+  auth.canEditUser,
+  function(req, res, next) {
+  var User = require('../models/user'),
+   Chat = require('../models/chat'),
+   creator = req.params.uname,
+   chatId = req.params.chat_id,
+   i, len = 0,
+   recipients = typeof req.body.recipients !=='object' ? JSON.parse(req.body.recipients) : req.body.recipients;
+   
+  if (Array.isArray(recipients)) { len = recipients.length; } 
+  else { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
+  
+  Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creator},
+    {
+      '$addToSet': {'recipients': {'$each': recipients} }
+    },
+    function(err) {
+    if (err) { next(err); return; }
+    
+    res.status(200).json({'code': 0, 'error': null});
+    });
 });
 
 /* add new recipient to old chat */
