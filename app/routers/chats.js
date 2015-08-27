@@ -84,10 +84,17 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
       Chat = require('../models/chat'),
       creatorId = req.params.uname,
       message = req.body.message,
-      recipients = req.body.recipients,
+      recipients = typeof req.body.recipients !== 'undefined' ? req.body.recipients : [],
       chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
-      chatTitle = typeof(req.body.chat_title)!='undefined' ? req.body.chat_title : recipients.sort().toString();
+      chatTitle = typeof req.body.chat_title !== 'undefined' ? req.body.chat_title : recipients.sort().toString(),
+      i, len=0;
+      
+    if (typeof recipients !== 'object') {
+      recipients = JSON.parse(recipients);
+    }
     
+    if (Array.isArray(recipients)) { len = recipients.length; } 
+    if (len == 0) { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
     recipients.unshift(creatorId);
       
     /* save chat */
@@ -249,7 +256,11 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
       creatorId = req.params.uname,
       chatId = req.params.chat_id,
       chatTitle = req.body.chat_title,
-      recipients = typeof req.body.recipients !=='object' ? JSON.parse(req.body.recipients) : req.body.recipients;
+      recipients = typeof req.body.recipients !== 'undefined' ? req.body.recipients : [];
+      
+    if (typeof recipients !== 'object') {
+      recipients = JSON.parse(recipients);
+    }
     
     if (!Array.isArray(recipients)) { recipients = []; } 
     Chat.Model.findOneAndUpdate({'chat_id': chatId, 'recipients': creatorId},
