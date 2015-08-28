@@ -89,13 +89,14 @@ angular.module('myApp.chat').controller('Chat',
 	  }
 	  $http.post(postUrl, chatData)
 	  .success(function(data) {
-	    $scope.formData = {}; // clear the form so our user is ready to enter another
 	    console.log(data);
 	  })
 	  .error(function(data) {
 	    console.log('Error: ' + data);
 	  });
-	});  
+	});
+	
+	$scope.formData = {}; // clear the form so our user is ready to enter another
     };
     
     $scope.addRecipient = function() {
@@ -113,6 +114,7 @@ angular.module('myApp.chat').controller('Chat',
        .error(function(data) {
 	console.log('Error: ' + data);
        });
+       
       $scope.formData = {}; // clear the form so our user is ready to enter another
       $scope.chatObject.recipients = $scope.chatObject.recipients.concat(recipients);
     }

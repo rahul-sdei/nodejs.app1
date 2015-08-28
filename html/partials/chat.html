@@ -73,6 +73,7 @@
     <label for="exampleInputEmail1">Type your message</label>
     <textarea class="form-control" rows="3" ng-model="formData.text"></textarea>
   </div>
+  <button type="button" class="btn btn-success" ng-click="sendChat()">Send</button>
   
   <div class="form-group" ng-if="chatObject.recipients.length > 0">
     <label>Recipients</label>

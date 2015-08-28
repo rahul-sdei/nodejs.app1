@@ -161,7 +161,7 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
       }
       
       /* throw notifications */
-      for (i in recipients) {
+      for (var i in recipients) {
         if (recipients[i]==creatorId) {
           /* send notification to sender */
           socket.notifyUser(creatorId, 'chat.sent', {
@@ -214,7 +214,8 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
       Chat = require('../models/chat'),
       creatorId = req.params.uname,
       chatId = req.params.chat_id,
-      message = typeof(req.body.message)!=='undefined' ? req.body.message : null;
+      message = typeof(req.body.message)!=='undefined' ? req.body.message : null,
+      messageObject = {'creator_id': creatorId, 'message': message, 'created_at': Date.now()};
     
     if (message==null) { res.status(400).json({'code': 400, 'error': 'Message field can\'t be empty.'}); return; }
     
@@ -222,32 +223,44 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
     console.log('Chat.addMessage() calling', [chatId, creatorId, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.addMessage(chatId, creatorId, message, function(err, recipients){
-      if (err) {
-        next(err);
-        return;
-      }
-      
-      /* throw notifications */
-      for (i in recipients) {
-        if (recipients[i]==creatorId) {
-          /* send notification to sender */
-          socket.notifyUser(creatorId, 'chat.sent', {
-            '_id': req.body._id
-            });
-        } else {
-          /* send notification to recipient */
-          socket.notifyUser(recipients[i], 'chat.new', {
-            'sender': creatorId,
-            'message': message,
-            'date': Date.now()
-            });
+    Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creatorId},
+      {'$set': {'last_mesg': messageObject } },
+      function(err, chat1){
+        if (err) {
+          next(err);
+          return;
         }
-      }
-      
-      /* send response */
-      res.status(200).json({'code': 0, 'error': null});
-    });
+        
+        messageObject['chat_id'] = chatId;
+        var chatMesg = new Chat.MesgModel(messageObject);
+        chatMesg.save(function(err){
+          if (err) {
+            next(err);
+            return;
+          }
+          
+          /* throw notifications */
+          for (var i in chat1.recipients) {
+            if (chat1.recipients[i]==creatorId) {
+              /* send notification to sender */
+              socket.notifyUser(creatorId, 'chat.sent', {
+                '_id': req.body._id
+                });
+            } else {
+              /* send notification to recipient */
+              socket.notifyUser(chat1.recipients[i], 'chat.new', {
+                'sender': creatorId,
+                'message': message,
+                'date': Date.now()
+                });
+            }
+          }
+          
+          /* send response */
+          res.status(200).json({'code': 0, 'error': null});
+        });
+      });
+    
 });
 
 /* update chat object specific details */
