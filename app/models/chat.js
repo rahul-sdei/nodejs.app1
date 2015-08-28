@@ -116,62 +116,6 @@ chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
   });
 }
 
-chatSchema.statics.removeRecipient = function(chatId, creatorId, recipientId, next) {
-  var Chat = this;
-  
-  Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
-    if (err) { next(err); return; }
-    else if ( chat1==null ) {
-      next({
-        "err": 'Chat Object not found',
-        "code": 404
-        });
-      return;
-    }
-    
-    for (i in chat1.recipients) {
-      if (chat1.recipients[i] === recipientId) {
-        chat1.recipients.splice(i, 1);
-      }
-    }
-    
-    chat1.save(function(err) {
-      if (err) { next(err); return;}
-      
-      next(null);
-    });
-  });
-}
-
-chatSchema.statics.addRecipient = function(chatId, creatorId, recipientId, next) {
-  var Chat = this;
-  
-  Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
-    if (err) { next(err); return; }
-    else if ( chat1==null ) {
-      next({
-        "err": 'Chat Object not found',
-        "code": 404
-        });
-      return;
-    }
-    
-    for (i in chat1.recipients) {
-      if (chat1.recipients[i] === recipientId) {
-        chat1.recipients.splice(i, 1);
-      }
-    }
-    
-    chat1.recipients.push(recipientId);
-    
-    chat1.save(function(err) {
-      if (err) { next(err); return;}
-      
-      next(null);
-    });
-  });
-}
-
 // the schema is useless so far
 // we need to create a model using it
 var ChatModel = mongoose.model('Chat', chatSchema);

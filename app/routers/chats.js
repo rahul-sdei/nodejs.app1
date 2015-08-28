@@ -88,7 +88,7 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
       chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
       chatTitle = typeof req.body.chat_title !== 'undefined' ? req.body.chat_title : recipients.sort().toString(),
       i, len=0;
-      
+
     if (typeof recipients !== 'object') {
       recipients = JSON.parse(recipients);
     }
@@ -143,10 +143,12 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
      Chat = require('../models/chat'), 
      creatorId = req.params.uname,
      recipientId = req.params.recipient,
-     message = typeof(req.body.message)!='undefined' ? req.body.message : null,
+     message = typeof(req.body.message)!=='undefined' ? req.body.message : null,
      recipients = [creatorId, recipientId].sort(),
      chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
-     chatTitle = typeof(req.body.chat_title)!='undefined' ? req.body.chat_title : recipients.sort().toString();
+     chatTitle = typeof(req.body.chat_title)!=='undefined' ? req.body.chat_title : recipients.sort().toString();
+    
+    if (message==null) { res.status(400).json({'code': 400, 'error': 'Message field can\'t be empty.'}); return; }
     
     /* save chat */
     console.log('Chat.saveChat() calling', [chatId, chatTitle, creatorId, recipientId, recipients, message]);
@@ -209,11 +211,12 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
   auth.canEditUser,
   function(req, res, next) {
     var User = require('../models/user'),
-      Chat = require('../models/chat');
-      
-    var creatorId = req.params.uname;
-    var chatId = req.params.chat_id;
-    var message = typeof(req.body.message)!='undefined' ? req.body.message : null;
+      Chat = require('../models/chat'),
+      creatorId = req.params.uname,
+      chatId = req.params.chat_id,
+      message = typeof(req.body.message)!=='undefined' ? req.body.message : null;
+    
+    if (message==null) { res.status(400).json({'code': 400, 'error': 'Message field can\'t be empty.'}); return; }
     
     /* save chat */
     console.log('Chat.addMessage() calling', [chatId, creatorId, message]);
@@ -284,9 +287,14 @@ router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
     creator = req.params.uname,
     chatId = req.params.chat_id;
     
-    Chat.Model.removeRecipient(chatId, creator, creator, function(err, chat) {
-      if (err) { next(err); return; }
-      res.status(200).json({'code': 0, 'error': null});
+    Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creator},
+    {
+      '$pull': {'recipients': creator }
+    },
+    function(err) {
+    if (err) { next(err); return; }
+    
+    res.status(200).json({'code': 0, 'error': null});
     });
 });
 
@@ -316,10 +324,14 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients',
    creator = req.params.uname,
    chatId = req.params.chat_id,
    i, len = 0,
-   recipients = typeof req.body.recipients !=='object' ? JSON.parse(req.body.recipients) : req.body.recipients;
+   recipients = typeof req.body.recipients !== 'undefined' ? req.body.recipients : [];
    
+  if (typeof recipients !== 'object') {
+    recipients = JSON.parse(recipients);
+  }
+
   if (Array.isArray(recipients)) { len = recipients.length; } 
-  else { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
+  if (len == 0) { res.status(400).json({'code': 400, 'error': 'Bad request.'}); return; }
   
   Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creator},
     {
@@ -342,9 +354,14 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipien
    chatId = req.params.chat_id,
    recipient = req.params.recipient;
    
-  Chat.Model.addRecipient(chatId, creator, recipient, function(err, chat) {
-      if (err) { next(err); return; }
-      res.status(200).json({'code': 0, 'error': null});
+  Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creator},
+    {
+      '$addToSet': {'recipients': recipient }
+    },
+    function(err) {
+    if (err) { next(err); return; }
+    
+    res.status(200).json({'code': 0, 'error': null});
     });
 });
 
@@ -358,9 +375,14 @@ router.delete('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)/recipients/:recipi
      chatId = req.params.chat_id,
      recipient = req.params.recipient;
     
-    Chat.Model.removeRecipient(chatId, creator, recipient, function(err, chat) {
-      if (err) { next(err); return; }
-      res.status(200).json({'code': 0, 'error': null});
+    Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creator},
+    {
+      '$pull': {'recipients': recipient }
+    },
+    function(err) {
+    if (err) { next(err); return; }
+    
+    res.status(200).json({'code': 0, 'error': null});
     });
 });
 
