@@ -19,15 +19,17 @@
     <img class="media-object" ng-src="../uploads/chat_icon?dim=64" alt="{{chat.chat_icon}}">
   </div>
   <div class="media-body">
-    <h4 class="media-heading">{{chat.chat_name}}
-        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+chat.chat_id)">Chat</button>
-        <button type="button" class="btn btn-danger" ng-click="deleteChat(chat.chat_id)">Delete</button>
-    </h4>
+    <h4 class="media-heading">{{chat.chat_name}}</h4>
     <p>
         <strong>{{chat['last_mesg'] ['creator_id']}}</strong>:
         {{chat['last_mesg'] ['message']}} -
         <small><i>{{chat['last_mesg'] ['created_at']|theDate}}</i></small>
     </p>
+    
+    <div>
+        <button type="button" class="btn btn-primary" ng-click="redirect('chat/'+chat.chat_id)">Chat</button>
+        <button type="button" class="btn btn-danger" ng-click="deleteChat(chat.chat_id)">Delete</button>
+    </div>
   </div>
   </div>
   <!--<h4></h4>

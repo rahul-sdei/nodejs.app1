@@ -19,11 +19,17 @@
     <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">
   </div>
   <div class="media-body">
-    <h4 class="media-heading">{{user1.username}}
-        <button type="button" class="btn btn-primary" ng-click="redirect('chat/new/'+user1.username)">Chat</button>
-        <button type="button" class="btn btn-danger" ng-click="removeContact(user1.username)" ng-if="user['contacts'].indexOf(user1.username) > -1">Remove</button>
-    </h4>
-    {{user1.name}}, {{user1.meta.age}}, {{user1.location}}
+    <h4 class="media-heading">{{user1.name}}</h4>
+        
+    <p>
+    <span ng-if="user1.meta.age">{{user1.meta.age}},</span>
+    <span ng-if="user1.location">{{user1.location}}</span>
+    </p>
+    
+    <div>
+    <button type="button" class="btn btn-primary" ng-click="redirect('chat/new/'+user1.username)">Chat</button>
+    <button type="button" class="btn btn-danger" ng-click="removeContact(user1.username)" ng-if="user['contacts'].indexOf(user1.username) > -1">Remove</button>
+    </div>
   </div>
   </div>
   <!--<h4></h4>
