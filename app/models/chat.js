@@ -46,74 +46,14 @@ var chatSchema = new Schema({
 chatSchema.post('save', function(doc){
 });
 
-chatSchema.statics.saveChat = function(chatId, chatTitle, creatorId, recipients, text, next) {
-  var Chat = this,
-    message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
-  console.log('Chat.saveChat() called');
-  Chat.findOne({'chat_id': chatId}, function(err, chat1) {
-    if (err) { next(err); return; }
-    else if ( chat1==null ) {
-      console.log('Chat.saveChat() new chatId:', chatId);
-      var chat1 = new Chat({
-        'chat_id': chatId,
-        'chat_name': chatTitle,
-        'recipients': recipients,
-        'created_at': Date.now()
-      });
-    } else {
-      /* update recipients list to add removed user again */
-      chat1.recipients = recipients;
-      chat1.chat_name = recipients.sort().toString();
-      console.log('Chat.saveChat() old chatId:', chatId);
-    }
-    chat1.last_mesg = message;
-    //console.log(chat1);
-    chat1.save(function(err) {
-      if (err) { next(err); return;}
-      console.log('Chat.saveChat() finished');
-      
-      message['chat_id'] = chatId;
-      console.log('Chat.addMessage() push new item');
-      var chatMesg = new ChatMesgModel(message);
-      chatMesg.save(function(err){
-        if (err) { next(err); return;}
-        console.log('Chat.addMessage() finished');
-        next(null);
-        });
-    });
+chatSchema.methods.addToHistory = function(next){
+  var chatMesg = new ChatMesgModel({
+      'chat_id': this.chat_id,
+      'creator_id': this.last_mesg.creator_id, 
+      'message': this.last_mesg.message, 
+      'created_at': this.last_mesg.created_at
   });
-}
-
-chatSchema.statics.addMessage = function(chatId, creatorId, text, next) {
-  var Chat = this,
-    message = {'creator_id': creatorId, 'message': text, 'created_at': Date.now()};
-  
-  console.log('Chat.addMessage() called');
-  Chat.findOne({'chat_id': chatId, 'recipients': creatorId}, function(err, chat1) {
-    if (err) { next(err); return; }
-    else if ( chat1==null ) {
-      next({
-        "err": 'Chat Object not found',
-        "code": 404
-        });
-      return;
-    }
-    //chat1.chat_name = chat1.recipients.sort().toString();
-    chat1.last_mesg = message;
-    chat1.save(function(err) {
-      if (err) { next(err); return;}
-      
-      console.log('Chat.addMessage() push new item');
-      message['chat_id'] = chatId;
-      var chatMesg = new ChatMesgModel(message);
-      chatMesg.save(function(err){
-        if (err) { next(err); return;}
-        console.log('Chat.addMessage() finished');
-        
-        next(null, chat1.recipients);
-        });
-    });
-  });
+  chatMesg.save(next);
 }
 
 // the schema is useless so far

@@ -87,6 +87,7 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
       recipients = typeof req.body.recipients !== 'undefined' ? req.body.recipients : [],
       chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
       chatTitle = typeof req.body.chat_title !== 'undefined' ? req.body.chat_title : recipients.sort().toString(),
+      messageObject = {'creator_id': creatorId, 'message': message, 'created_at': Date.now()},
       i, len=0;
 
     if (typeof recipients !== 'object') {
@@ -101,14 +102,20 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
     console.log('Chat.saveChat() calling', [chatId, chatTitle, creatorId, recipients, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.saveChat(chatId, chatTitle, creatorId, recipients, message, function(err){
-      if (err) {
-        next(err);
-        return;
-      }
-      
-      /* send response */
-      res.status(200).json({'code': 0, 'error': null});
+    var chat1 = new Chat.Model({
+        'chat_name': chatTitle, 
+        'chat_id': chatId, 
+        'recipients': recipients, 
+        'last_mesg': messageObject 
+        });
+    chat1.save(function(err){
+       if (err) {
+           next(err);
+           return;
+       }
+       chat1.addToHistory();
+       /* send response */
+       res.status(200).json({'code': 0, 'error': null});
     });
 });
 
@@ -146,7 +153,8 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
      message = typeof(req.body.message)!=='undefined' ? req.body.message : null,
      recipients = [creatorId, recipientId].sort(),
      chatId = (recipients.sort().toString() + ',' + Date.now()).hashCode(),
-     chatTitle = typeof(req.body.chat_title)!=='undefined' ? req.body.chat_title : recipients.sort().toString();
+     chatTitle = typeof(req.body.chat_title)!=='undefined' ? req.body.chat_title : recipients.sort().toString(),
+     messageObject = {'creator_id': creatorId, 'message': message, 'created_at': Date.now()};
     
     if (message==null) { res.status(400).json({'code': 400, 'error': 'Message field can\'t be empty.'}); return; }
     
@@ -154,31 +162,33 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
     console.log('Chat.saveChat() calling', [chatId, chatTitle, creatorId, recipientId, recipients, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.saveChat(chatId, chatTitle, creatorId, recipients, message, function(err){
-      if (err) {
-        next(err);
-        return;
-      }
-      
-      /* throw notifications */
-      for (var i in recipients) {
-        if (recipients[i]==creatorId) {
-          /* send notification to sender */
-          socket.notifyUser(creatorId, 'chat.sent', {
-            '_id': req.body._id
+    
+    Chat.Model.findOne({recipients: {$eq: recipients.sort()} }, function(err, chat1){
+       if (err) {
+           next(err);
+           return;
+       }
+       
+       if (chat1 == null) {
+           chat1 = new Chat.Model({
+            'chat_name': chatTitle, 
+            'chat_id': chatId, 
+            'recipients': recipients, 
+            'last_mesg': messageObject 
             });
-        } else {
-          /* send notification to recipient */
-          socket.notifyUser(recipients[i], 'chat.new', {
-            'sender': creatorId,
-            'message': message,
-            'date': Date.now()
-            });
-        }
-      }
-      
-      /* send response */
-      res.status(200).json({'code': 0, 'error': null});
+       } else {
+           chat1.last_mesg = messageObject
+       }
+       
+       chat1.save(function(err){
+           if (err) {
+               next(err);
+               return;
+           }
+           chat1.addToHistory();
+           /* send response */
+           res.status(200).json({'code': 0, 'error': null});
+       })
     });
     
 })
@@ -231,34 +241,9 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
           return;
         }
         
-        messageObject['chat_id'] = chatId;
-        var chatMesg = new Chat.MesgModel(messageObject);
-        chatMesg.save(function(err){
-          if (err) {
-            next(err);
-            return;
-          }
-          
-          /* throw notifications */
-          for (var i in chat1.recipients) {
-            if (chat1.recipients[i]==creatorId) {
-              /* send notification to sender */
-              socket.notifyUser(creatorId, 'chat.sent', {
-                '_id': req.body._id
-                });
-            } else {
-              /* send notification to recipient */
-              socket.notifyUser(chat1.recipients[i], 'chat.new', {
-                'sender': creatorId,
-                'message': message,
-                'date': Date.now()
-                });
-            }
-          }
-          
-          /* send response */
-          res.status(200).json({'code': 0, 'error': null});
-        });
+        chat1.addToHistory();
+        /* send response */
+        res.status(200).json({'code': 0, 'error': null});
       });
     
 });

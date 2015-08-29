@@ -103,16 +103,16 @@ angular.module('myApp.chat').controller('Chat',
       var recipients = $scope.formData['recipients']
        .split(',')
        .map(function(input){
-	return input.trim();
-	}),
+        return input.trim();
+        }),
        postData = {'recipients': recipients};
       console.log('Adding recipients:', recipients);
       $http.post('/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id + '/recipients', postData)
        .success(function(data){
-	console.log(data);
+        console.log(data);
        })
        .error(function(data) {
-	console.log('Error: ' + data);
+        console.log('Error: ' + data);
        });
        
       $scope.formData = {}; // clear the form so our user is ready to enter another
@@ -121,6 +121,13 @@ angular.module('myApp.chat').controller('Chat',
     
     $scope.removeRecipient = function(recipient) {
       console.log('Remove recipient:', recipient);
+      $http.delete('/chats/' + $scope.user['uname'] + '/' + $routeParams.chat_id + '/recipients/' + recipient)
+        .success(function(data){
+        console.log(data);
+       })
+       .error(function(data) {
+        console.log('Error: ' + data);
+       });
       $scope.chatObject.recipients.removeVal(recipient);
     };
 }]);
