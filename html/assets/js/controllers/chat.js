@@ -58,10 +58,10 @@ angular.module('myApp.chat').controller('Chat',
         .success(function(data) {
           console.log(data);
           $scope.chats = data['history'];
-	  $scope.chatObject = data['chat'];
-	  $scope.chatObject.recipients.removeVal($scope.user['uname']);
-	  console.log($scope.chatObject.recipients);
-	  $scope.formTitle = 'Chat with ' + data['chat'] ['chat_name'];
+          $scope.chatObject = data['chat'];
+          $scope.chatObject.recipients.removeVal($scope.user['uname']);
+          console.log($scope.chatObject.recipients);
+          $scope.formTitle = 'Chat with ' + data['chat'] ['chat_name'];
         })
         .error(function(data) {
           console.log('Error: ' + data);

@@ -44,16 +44,17 @@ var chatSchema = new Schema({
 /*chatSchema.index({ creator_id: 1, recipient_id: 1}, { unique: true });*/
 
 chatSchema.post('save', function(doc){
+    var chatMesg = new ChatMesgModel({
+        'chat_id': doc.chat_id,
+        'creator_id': doc.last_mesg.creator_id,
+        'message': doc.last_mesg.message,
+        'created_at': doc.last_mesg.created_at
+    });
+    chatMesg.save();
 });
 
-chatSchema.methods.addToHistory = function(next){
-  var chatMesg = new ChatMesgModel({
-      'chat_id': this.chat_id,
-      'creator_id': this.last_mesg.creator_id, 
-      'message': this.last_mesg.message, 
-      'created_at': this.last_mesg.created_at
-  });
-  chatMesg.save(next);
+chatSchema.methods.addToHistory = function(messageObject, next){
+  
 }
 
 // the schema is useless so far

@@ -15,6 +15,8 @@ var application_root = __dirname,
   flash = require('connect-flash'),
   basicAuth = require('basic-auth-connect'),
   socket = require('./app/modules/socket'),
+  EventEmitter = require('events').EventEmitter,
+  emitter = new EventEmitter(),
   port = 4242;
 
 /* Connect to db */
@@ -86,7 +88,7 @@ socket.connect(server);
 /* users router */
 var users = require('./app/routers/users');
 app.use('/users', users);
-var chats = require('./app/routers/chats') (socket);
+var chats = require('./app/routers/chats') (emitter);
 app.use('/chats', chats);
 var index = require('./app/routers/index') (passport);
 app.use('/', index);
@@ -111,6 +113,7 @@ process.on('uncaughtException', function(err) {
   console.log('Uncaught exception: ' + err);
 });
 
+require('./app/events/chat.js') (emitter, socket);
 
 String.prototype.hashCode = function(){
   var hash = 0, i, chr, len;

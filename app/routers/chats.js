@@ -2,7 +2,7 @@ var express = require('express'),
  router = express.Router(),
   auth = require('../modules/auth');
 
-module.exports = function(socket){
+module.exports = function(emitter){
     
 router.get('/', auth.isAdministrator, function(req, res, next){
   var User = require('../models/user'),
@@ -113,7 +113,8 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
            next(err);
            return;
        }
-       chat1.addToHistory();
+       /* call event emitter */
+       emitter.emit('chat.save', recipients, req.body._id, messageObject);
        /* send response */
        res.status(200).json({'code': 0, 'error': null});
     });
@@ -185,7 +186,8 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
                next(err);
                return;
            }
-           chat1.addToHistory();
+           /* call event emitter */
+           emitter.emit('chat.save', recipients, req.body._id, messageObject);
            /* send response */
            res.status(200).json({'code': 0, 'error': null});
        })
@@ -233,17 +235,31 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
     console.log('Chat.addMessage() calling', [chatId, creatorId, message]);
     /*res.status(200).json({'code': 0, 'error': null});
     return;*/
-    Chat.Model.findOneAndUpdate({"chat_id": chatId, "recipients": creatorId},
-      {'$set': {'last_mesg': messageObject } },
+    Chat.Model.findOne({"chat_id": chatId, "recipients": creatorId},
       function(err, chat1){
         if (err) {
           next(err);
           return;
         }
+        if (chat1 == null) {
+            next({
+            "err": 'Chat Object not found',
+            "code": 404
+            });
+            return;
+        }
+        chat1.last_mesg = messageObject;
+        chat1.save(function(err){
+            if (err) {
+                next(err);
+                return;
+            }
+            /* call event emitter */
+            emitter.emit('chat.save', chat1.recipients, req.body._id, messageObject);
+            /* send response */
+            res.status(200).json({'code': 0, 'error': null});
+        });
         
-        chat1.addToHistory();
-        /* send response */
-        res.status(200).json({'code': 0, 'error': null});
       });
     
 });
