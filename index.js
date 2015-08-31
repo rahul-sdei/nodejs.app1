@@ -28,14 +28,6 @@ app.use('/html', express.static('html'));
 /* Use quickthumb */
 app.use('/uploads', qt.static(application_root + '/uploads'));
 
-/*app.use( multer( {
-    'dest': './uploads/',
-    'rename': function (fieldname, filename) {
-    return filename.replace(/\W+/g, '-').toLowerCase() + Date.now()
-    },
-    'limits': { 'fieldNameSize': 64, 'files': 1, 'fields': 'Infinity', 'fileSize': 1024*1024*2, 'includeEmptyFields': true, 'putSingleFilesInArray': true }
-} ) )*/
-
 /* instruct the app to use the `bodyParser()` middleware for all routes */
 app.use( bodyParser.urlencoded( {  'extended': false } ) );
 app.use(bodyParser.json());
@@ -80,6 +72,7 @@ var server = app.listen(port, function () {
   var port = server.address().port
 
   console.log('Example app listening at http://%s:%s', host, port);
+  console.log(['rahul', 'sethi'].sort().hashCode());
 });
 
 /* setup socket io */
@@ -88,8 +81,12 @@ socket.connect(server);
 /* users router */
 var users = require('./app/routers/users');
 app.use('/users', users);
+/* chats router */
 var chats = require('./app/routers/chats') (emitter);
 app.use('/chats', chats);
+/* chat events */
+require('./app/events/chat.js') (emitter, socket);
+/* index routers */
 var index = require('./app/routers/index') (passport);
 app.use('/', index);
 
@@ -112,16 +109,3 @@ app.use(function(err, req, res, next) {
 process.on('uncaughtException', function(err) {
   console.log('Uncaught exception: ' + err);
 });
-
-require('./app/events/chat.js') (emitter, socket);
-
-String.prototype.hashCode = function(){
-  var hash = 0, i, chr, len;
-  if (this.length == 0) return hash;
-  for (i = 0, len = this.length; i < len; i++) {
-    chr   = this.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
-}

@@ -11,8 +11,8 @@ module.exports = function(passport){
     }));*/
     router.post('/login', function (req, res, next) {
         passport.authenticate('login', function (err, user, info) {
-          if (err) { return next(err); }
-          if (!user) { return res.status(401).json( { 'code':401, 'error':'Unauthorized' } ); }
+          if (err) { next(err); return; }
+          if (!user) { res.status(401).json( { 'code':401, 'error':'Unauthorized' } ); return; }
 
           req.logIn(user, { session: true }, function (err) {
 
@@ -37,15 +37,16 @@ module.exports = function(passport){
     /* Handle Registration POST */
     router.post('/signup', function (req, res, next) {
         passport.authenticate('signup', function (err, user, info) {
-          if (err) { return next(err); }
-          if (!user) { return res.status(500).json( { 'code':500, 'error':'Internal Server Error' } ); }
+          if (err) { next(err); return; }
+          if (!user) { res.status(500).json( { 'code':500, 'error':'Internal Server Error' } ); return; }
 
           req.logIn(user, { session: true }, function (err) {
 
             // Should not cause any errors
 
-            if (err) { return next(err); }
-            return res.status(200).json({ 'code':0, 'error':null });
+            if (err) { next(err); return; }
+            res.status(200).json({ 'code':0, 'error':null });
+            return;
           });
         })(req, res, next);
       });

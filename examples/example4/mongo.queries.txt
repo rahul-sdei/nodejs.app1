@@ -1,0 +1,18 @@
+db.users.find({$or: [{age: {$gte: 27}, teams: {$in: ["Punjab", "Chennai"]} }, {roles: "Captain"}] }, {name: 1, age: 1}).limit(3).pretty();
+
+db.users.update({"name": "Ravi Ashwin"}, {$set: {primary: "bowler"} });
+db.users.update({"name": "Virat Kohli"}, {$set: {status: "single"} });
+db.users.update({"name": "MS Dhoni"}, {$set: {status: "married"} });
+db.users.update({"name": "Ravi Ashwin"}, {$set: {status: "married"} });
+db.users.update({"_id": ObjectId("55e423cd10c81682c7f9c88b")}, {$addToSet: {teams: "New Delhi"} });
+db.users.aggregate({$match: {age: {$gt: 27} } }, {$group: {_id: "$primary", totalRuns: {$sum: "$runs"} } }).pretty();
+db.users.aggregate({$match: {age: {$gte: 27}}}, {$group: {_id: "$status", totalRuns: {$sum: "$runs"} }}).pretty();
+db.users.aggregate({$group: {_id: "$status", totalRuns: {$sum: "$runs"} }}, {$match: {totalRuns: {$gt: 10000}}}).pretty();
+
+db.users.update({name: 'Virat Kohli'}, {$unset: {"matches": 1} });
+db.users.update({name: 'Virat Kohli'}, {$push: {matches: {$each: [{opponent: "SL", result:'Win', mom: 'Rohit Sharma', toss: 'SL'}, {opponent: 'WI', result: 'Win', mom: 'Sachin Tendulkar', toss: 'IND'}, {opponent: 'RSA', result: 'Loss', mom: 'ABD', toss: 'RSA'}] } } })
+db.users.find({}, {name: 1, age: 1, status: 1, matches: {$elemMatch: {result: 'Win'} } }).pretty();
+db.users.find({'matches': {$elemMatch: {result:'Win'} } }, {name: 1, age: 1, status: 1, 'matches.$': 1 }).pretty();
+db.users.update({name: 'Virat Kohli', 'matches.toss': 'SL'}, {$set: {'matches.$.toss': 'IND'}});
+db.users.find({name: 'Virat Kohli', 'matches.toss': 'IND'}).pretty();
+db.users.update({name: 'Virat Kohli', 'matches.result': 'Win'}, {$set: {'matches.0.scores':{powerplay1: 70, powerplay2: 85}, 'matches.1.scores':{powerplay1: 80, powerplay2: 95} } });

@@ -31,9 +31,9 @@ router.get('/', function(req, res, next) {
   console.log(where);
   
   User.find(where).select('username name location meta has_picture').skip(offset).limit(limit).sort('-username').exec(function(err, users) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
     User.count(where, function(err, count){
-        if (err) { return next(err); }
+        if (err) { next(err); return; }
         
         /* send count in headers */
         res.set('X-Total-Count', count);
@@ -85,7 +85,7 @@ router.post('/', function(req, res, next) {
   
   // call the built-in save method to save to the database
   user1.save(function(err) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     res.status(200).json({'code': 0, 'error': null});
   });
 });
@@ -131,7 +131,7 @@ router.get('/:uname([a-zA-Z0-9\-\_]+)', function(req, res, next) {
     uname = req.params.uname;
   
   User.findOne({'username':uname}, 'username name location meta has_picture', function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   /*user.password = '123';
   user.save();*/
@@ -151,14 +151,14 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)', auth.canEditUser, function(req, res, nex
     uname = req.params.uname;
   
   User.findOne({'username':uname}, function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   user.name = req.body.fullname;
   user.location = req.body.location;
   user.meta.age = req.body.age;
   user.meta.website = req.body.website;
   user.save(function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       res.status(200).json({'code': 0, 'error': null});
   })
   })
@@ -172,11 +172,11 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/password', auth.canEditUser, function(req,
     newPassword = req.body.new_passwd;
   
   User.findOne({'username':uname}, function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   
   user.comparePassword(oldPassword, function(error, isMatch) {
-    if ( error ) { return next(error); }
+    if ( error ) { next(error); return; }
     else if ( isMatch ) {
       user.password = newPassword;
       user.save(function(error) {
@@ -184,7 +184,7 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/password', auth.canEditUser, function(req,
         else { return res.status(200).json({'code': 0, 'error': null}); }
       })
     }
-    else { return res.status(401).json( { 'code':401, 'error':'Unauthorized' } ); }
+    else { res.status(401).json( { 'code':401, 'error':'Unauthorized' } ); return; }
   });
   })
 });
@@ -195,12 +195,12 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/picture', auth.canEditUser, function(req, 
     uname = req.params.uname;
   
   User.findOne({'username':uname}, function(err, user) {
-  if (err) { return next(err); }
+  if (err) { next(err); return; }
   else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   
   var form = new formidable.IncomingForm();
   form.parse(req, function(err, fields, files) {
-    if ( err ) { return next(err); }
+    if ( err ) { next(err); return; }
     /*res.writeHead(200, {'content-type': 'text/plain'});
     res.write('received upload:\n\n');
     res.end(util.inspect({fields: fields, files: files}));*/
@@ -217,16 +217,16 @@ router.put('/:uname([a-zA-Z0-9\-\_]+)/picture', auth.canEditUser, function(req, 
     var fileName = 'mypicture';
 
     fs.ensureDir(destination, function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
     });
     /*fs.copy(tempPath, destination + fileName, function(err) {  
       if ( err ) { return next(err); }
     });*/
     qt.convert({'src': tempPath, 'dst': destination + fileName, 'height': 250},  function(err, path){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       user.has_picture = 1;
       user.save(function(err){
-          if ( err ) { return next(err); }
+          if ( err ) { next(err); return; }
           res.status(200).json({'code': 0, 'error': null});
       })
     })
@@ -241,17 +241,17 @@ router.delete('/:uname([a-zA-Z0-9\-\_]+)/picture', auth.canEditUser, function(re
     uname = req.params.uname;
   
   User.findOne({'username':uname}, function(err, user) {
-    if (err) { return next(err); }
+    if (err) { next(err); return; }
     else if ( user==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
   
     var destination = __dirname + '/../../uploads/' + user.username + '/';
     var fileName = 'mypicture';
 
     fs.remove(destination + fileName, function(err){
-      if ( err ) { return next(err); }
+      if ( err ) { next(err); return; }
       user.has_picture = 0;
       user.save(function(err){
-        if ( err ) { return next(err); }
+        if ( err ) { next(err); return; }
         res.status(200).json({'code': 0, 'error': null});
       })
     });

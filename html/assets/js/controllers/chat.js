@@ -135,6 +135,6 @@ angular.module('myApp.chat').controller('Chat',
 angular.module('myApp.chat').filter('theDate', function(){
   return function(input) { 
     var theDate = new Date(input);
-    return theDate.format('m M Y H.i');
+    return theDate.format('d M Y H.i');
   }
   });
