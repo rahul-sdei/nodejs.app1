@@ -16,3 +16,13 @@ db.users.find({'matches': {$elemMatch: {result:'Win'} } }, {name: 1, age: 1, sta
 db.users.update({name: 'Virat Kohli', 'matches.toss': 'SL'}, {$set: {'matches.$.toss': 'IND'}});
 db.users.find({name: 'Virat Kohli', 'matches.toss': 'IND'}).pretty();
 db.users.update({name: 'Virat Kohli', 'matches.result': 'Win'}, {$set: {'matches.0.scores':{powerplay1: 70, powerplay2: 85}, 'matches.1.scores':{powerplay1: 80, powerplay2: 95} } });
+
+db.users.update({name:'Shikhar Dhawan'}, {age: 26, runs: 7500, status: 'married', roles: ['Batsman', 'Bowler', 'Fielder']}, {upsert: true})
+db.users.update({name: {$exists: false}}, {$set: {name: 'Shikhar Dhawan'}})
+db.users.find({name: /^[S]/}).pretty()
+db.users.update({name: /^[S]/}, {$max: {runs: 8000}})
+db.users.update({name: /^[S]/}, {$min: {runs: 7500}})
+db.users.update({name:'Ishant Sharma'}, {$set: {age: 28, wickets: 300, status: 'single', roles: ['Bowler', 'Fielder']}, $setOnInsert: {name: 'Ishant Sharma'}}, {upsert: true})
+db.users.find({wickets: {$exists: true}}).pretty()
+db.users.find({$nor: [{wickets: {$exists: true}}, {roles: 'Captain'}] }).pretty()
+db.users.find({runs: {$not: {$gte: 7500}, $exists: true} }, {name: 1, runs: 1}).pretty()
