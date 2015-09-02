@@ -33,16 +33,27 @@
     ),
     chatId = angular.element(document.querySelector('html')).scope().chatId;
     
-    function newMessage(data) {
+    function setChatId(id) {
+        chatId = parseInt(id);
+    }
+    function newMessage(data, next) {
         console.log('ChatId:', data.chatId, 'Sender:', data.sender, 'Message:', data.message);
-        if (data.chatId != chatId) {
+        if (jQuery('#chat_log').exists() !== true) {
+            next('No chat window found');
+            return;
+        }
+        if (parseInt(data.chatId) !== chatId) {
+            next('ChatId: "'+chatId+'" not found');
             return;
         }
         var theDate = new Date(data['date']);
         data['dateString'] = theDate.format('m M Y H.i');
         
         var mesg_html = tplNewMesg(data);
-        $('#chat_log').append(mesg_html);
+        jQuery('#chat_log').append(mesg_html);
+    }
+    
+    function appendChat(data) {
     }
     
     function sendMessage(data, next) {
@@ -57,7 +68,7 @@
     
     function messageSent(data) {
         console.log('MessageId:', data['_id'], 'ChatId:', data.chatId);
-        chatId = data.chatId;
+        setChatId(data.chatId);
         $('#chat_log #chat_' + data['_id'] + ' span').html('&#10003;');
     }
 </script>

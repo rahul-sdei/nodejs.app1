@@ -22,7 +22,22 @@ socket['connect'] = function(user) {
   });
   
   session.on('chat.new', function(data){
-    newMessage(data);
+    var next = function(err) {
+      if (err) {
+        console.log(err);
+      }
+      showNotification({
+        icon: 'glyphicon glyphicon-envelope',
+        title: data.sender + ' says:',
+        message: data.message,
+        url: 'index.html#/chat/' + data.chatId
+        });
+      };
+    if (isCallable('newMessage')) {
+      newMessage(data, next);
+    } else {
+      next('newMessage() isn\'t callable');
+    }
   });
   
   session.on('chat.sent', function(data){

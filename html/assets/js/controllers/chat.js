@@ -38,6 +38,8 @@ angular.module('myApp.chat').controller('Chat',
 	getRecipient();
       } else {
 	$scope.chatId = $routeParams.chat_id;
+	console.log('ChatId:',$scope.chatId);
+	setChatId($scope.chatId);
 	getConversation();
       }
     }
@@ -66,6 +68,7 @@ angular.module('myApp.chat').controller('Chat',
           $scope.formTitle = 'Chat with ' + data['chat'] ['chat_name'];
         })
         .error(function(data) {
+	  $location.path('search/history');
           console.log('Error: ' + data);
         });
     }

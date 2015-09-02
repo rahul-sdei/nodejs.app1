@@ -1,6 +1,56 @@
-function isCallable(object) {
-return object && typeof object !== 'undefined';
-//return object && getClass.call(object) == '[object Function]'
+function isCallable(v, syntax_only, callable_name) {
+  //  discuss at: http://phpjs.org/functions/is_callable/
+  // original by: Brett Zamir (http://brett-zamir.me)
+  //    input by: François
+  // improved by: Brett Zamir (http://brett-zamir.me)
+  //        note: The variable callable_name cannot work as a string variable passed by reference as in PHP (since JavaScript does not support passing strings by reference), but instead will take the name of a global variable and set that instead
+  //        note: When used on an object, depends on a constructor property being kept on the object prototype
+  //        test: skip
+  //   example 1: is_callable('is_callable');
+  //   returns 1: true
+  //   example 2: is_callable('bogusFunction', true);
+  //   returns 2: true // gives true because does not do strict checking
+  //   example 3: function SomeClass () {}
+  //   example 3: SomeClass.prototype.someMethod = function (){};
+  //   example 3: var testObj = new SomeClass();
+  //   example 3: is_callable([testObj, 'someMethod'], true, 'myVar');
+  //   example 3: $result = myVar;
+  //   returns 3: 'SomeClass::someMethod'
+  //   example 4: is_callable(function () {});
+  //   returns 4: true
+
+  var name = '',
+    obj = {},
+    method = '';
+  var getFuncName = function(fn) {
+    var name = (/\W*function\s+([\w\$]+)\s*\(/)
+      .exec(fn);
+    if (!name) {
+      return '(Anonymous)';
+    }
+    return name[1];
+  };
+  if (typeof v === 'string') {
+    obj = this.window;
+    method = v;
+    name = v;
+  } else if (typeof v === 'function') {
+    return true;
+  } else if (Object.prototype.toString.call(v) === '[object Array]' &&
+    v.length === 2 && typeof v[0] === 'object' && typeof v[1] === 'string') {
+    obj = v[0];
+    method = v[1];
+    name = (obj.constructor && getFuncName(obj.constructor)) + '::' + method;
+  } else {
+    return false;
+  }
+  if (syntax_only || typeof obj[method] === 'function') {
+    if (callable_name) {
+      this.window[callable_name] = name;
+    }
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -11,101 +61,22 @@ function getRandomInt(min, max) {
    return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-String.prototype.hashCode = function(){
-  var hash = 0, i, chr, len;
-  if (this.length == 0) return hash;
-  for (i = 0, len = this.length; i < len; i++) {
-    chr   = this.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
+function showNotification(data) {
+   jQuery.notify(data, {
+      // settings
+      element: 'body',
+      type: "success",
+      allow_dismiss: true,
+      newest_on_top: false,
+      placement: {
+        from: "top",
+        align: "right"
+      },
+      delay: 5000,
+      animate: {
+        enter: 'animated fadeInDown',
+        exit: 'animated fadeOutUp'
+      },
+      url_target: '_self'
+    });
 }
-
-Array.prototype.removeVal = function(value) {
-    var index = this.indexOf(value);
-    if (index > -1) {
-        this.splice(index, 1);
-    }
-    return this;
-}
-
-Date.prototype.format = function(format) {
-    var returnStr = '';
-    var replace = Date.replaceChars;
-    for (var i = 0; i < format.length; i++) {
-        var curChar = format.charAt(i);
-        if (i - 1 >= 0 && format.charAt(i - 1) == "\\") {
-            returnStr += curChar;
-        }
-        else if (replace[curChar]) {
-            returnStr += replace[curChar].call(this);
-        } else if (curChar != "\\"){
-            returnStr += curChar;
-        }
-    }
-    return returnStr;
-};
-  
-Date.replaceChars = {
-    shortMonths: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    longMonths: ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'],
-    shortDays: ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'],
-    longDays: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-
-    // Day
-    d: function() { return (this.getDate() < 10 ? '0' : '') + this.getDate(); },
-    D: function() { return Date.replaceChars.shortDays[this.getDay()]; },
-    j: function() { return this.getDate(); },
-    l: function() { return Date.replaceChars.longDays[this.getDay()]; },
-    N: function() { return this.getDay() + 1; },
-    S: function() { return (this.getDate() % 10 == 1 && this.getDate() != 11 ? 'st' : (this.getDate() % 10 == 2 && this.getDate() != 12 ? 'nd' : (this.getDate() % 10 == 3 && this.getDate() != 13 ? 'rd' : 'th'))); },
-    w: function() { return this.getDay(); },
-    z: function() { var d = new Date(this.getFullYear(),0,1); return Math.ceil((this - d) / 86400000); }, // Fixed now
-    // Week
-    W: function() { var d = new Date(this.getFullYear(), 0, 1); return Math.ceil((((this - d) / 86400000) + d.getDay() + 1) / 7); }, // Fixed now
-    // Month
-    F: function() { return Date.replaceChars.longMonths[this.getMonth()]; },
-    m: function() { return (this.getMonth() < 9 ? '0' : '') + (this.getMonth() + 1); },
-    M: function() { return Date.replaceChars.shortMonths[this.getMonth()]; },
-    n: function() { return this.getMonth() + 1; },
-    t: function() { var d = new Date(); return new Date(d.getFullYear(), d.getMonth(), 0).getDate() }, // Fixed now, gets #days of date
-    // Year
-    L: function() { var year = this.getFullYear(); return (year % 400 == 0 || (year % 100 != 0 && year % 4 == 0)); },   // Fixed now
-    o: function() { var d  = new Date(this.valueOf());  d.setDate(d.getDate() - ((this.getDay() + 6) % 7) + 3); return d.getFullYear();}, //Fixed now
-    Y: function() { return this.getFullYear(); },
-    y: function() { return ('' + this.getFullYear()).substr(2); },
-    // Time
-    a: function() { return this.getHours() < 12 ? 'am' : 'pm'; },
-    A: function() { return this.getHours() < 12 ? 'AM' : 'PM'; },
-    B: function() { return Math.floor((((this.getUTCHours() + 1) % 24) + this.getUTCMinutes() / 60 + this.getUTCSeconds() / 3600) * 1000 / 24); }, // Fixed now
-    g: function() { return this.getHours() % 12 || 12; },
-    G: function() { return this.getHours(); },
-    h: function() { return ((this.getHours() % 12 || 12) < 10 ? '0' : '') + (this.getHours() % 12 || 12); },
-    H: function() { return (this.getHours() < 10 ? '0' : '') + this.getHours(); },
-    i: function() { return (this.getMinutes() < 10 ? '0' : '') + this.getMinutes(); },
-    s: function() { return (this.getSeconds() < 10 ? '0' : '') + this.getSeconds(); },
-    u: function() { var m = this.getMilliseconds(); return (m < 10 ? '00' : (m < 100 ?
-'0' : '')) + m; },
-    // Timezone
-    e: function() { return "Not Yet Supported"; },
-    I: function() {
-        var DST = null;
-            for (var i = 0; i < 12; ++i) {
-                    var d = new Date(this.getFullYear(), i, 1);
-                    var offset = d.getTimezoneOffset();
-
-                    if (DST === null) DST = offset;
-                    else if (offset < DST) { DST = offset; break; }                     else if (offset > DST) break;
-            }
-            return (this.getTimezoneOffset() == DST) | 0;
-        },
-    O: function() { return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + '00'; },
-    P: function() { return (-this.getTimezoneOffset() < 0 ? '-' : '+') + (Math.abs(this.getTimezoneOffset() / 60) < 10 ? '0' : '') + (Math.abs(this.getTimezoneOffset() / 60)) + ':00'; }, // Fixed now
-    T: function() { var m = this.getMonth(); this.setMonth(0); var result = this.toTimeString().replace(/^.+ \(?([^\)]+)\)?$/, '$1'); this.setMonth(m); return result;},
-    Z: function() { return -this.getTimezoneOffset() * 60; },
-    // Full Date/Time
-    c: function() { return this.format("Y-m-d\\TH:i:sP"); }, // Fixed now
-    r: function() { return this.toString(); },
-    U: function() { return this.getTime() / 1000; }
-};
