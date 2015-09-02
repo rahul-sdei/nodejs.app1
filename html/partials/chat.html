@@ -27,12 +27,17 @@
     
     var tplNewMesg = _.template(
         $('script.new_mesg').html()
-    );
-    var tplSentMesg = _.template(
+    ),
+    tplSentMesg = _.template(
         $('script.sent_mesg').html()
-    );
+    ),
+    chatId = angular.element(document.querySelector('html')).scope().chatId;
     
     function newMessage(data) {
+        console.log('ChatId:', data.chatId, 'Sender:', data.sender, 'Message:', data.message);
+        if (data.chatId != chatId) {
+            return;
+        }
         var theDate = new Date(data['date']);
         data['dateString'] = theDate.format('m M Y H.i');
         
@@ -51,6 +56,8 @@
     }
     
     function messageSent(data) {
+        console.log('MessageId:', data['_id'], 'ChatId:', data.chatId);
+        chatId = data.chatId;
         $('#chat_log #chat_' + data['_id'] + ' span').html('&#10003;');
     }
 </script>

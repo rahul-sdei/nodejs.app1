@@ -178,7 +178,7 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
             'last_mesg': messageObject 
             });
        } else {
-           chat1.last_mesg = messageObject
+           chat1.last_mesg = messageObject;
        }
        
        chat1.save(function(err){
@@ -187,7 +187,11 @@ router.post('/:uname([a-zA-Z][a-zA-Z0-9\-\_]+)/:recipient([a-zA-Z][a-zA-Z0-9\-\_
                return;
            }
            /* call event emitter */
-           emitter.emit('chat.save', recipients, req.body._id, messageObject);
+           emitter.emit('chat.save', recipients, {
+            chatId: chat1.chat_id,
+            messageId: req.body._id,
+            messageObject: messageObject
+            });
            /* send response */
            res.status(200).json({'code': 0, 'error': null});
        })
@@ -255,7 +259,11 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
                 return;
             }
             /* call event emitter */
-            emitter.emit('chat.save', chat1.recipients, req.body._id, messageObject);
+            emitter.emit('chat.save', chat1.recipients, {
+              chatId: chatId,
+              messageId: req.body._id,
+              messageObject: messageObject
+              });
             /* send response */
             res.status(200).json({'code': 0, 'error': null});
         });

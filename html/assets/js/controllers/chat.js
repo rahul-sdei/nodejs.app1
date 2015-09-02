@@ -17,6 +17,7 @@ angular.module('myApp.chat').controller('Chat',
 	$scope.tplSidebar = 'partials/sidebar.html';
     $scope.recipient = {};
     $scope.chats = [];
+    $scope.chatId = null;
     $scope.formData = {};
     $scope.states = ['Alabama', 'Alaska', 'Arizona', 'Arkansas', 'California', 'Colorado', 'Connecticut', 'Delaware', 'Florida', 'Georgia', 'Hawaii', 'Idaho', 'Illinois', 'Indiana', 'Iowa', 'Kansas', 'Kentucky', 'Louisiana', 'Maine', 'Maryland', 'Massachusetts', 'Michigan', 'Minnesota', 'Mississippi', 'Missouri', 'Montana', 'Nebraska', 'Nevada', 'New Hampshire', 'New Jersey', 'New Mexico', 'New York', 'North Dakota', 'North Carolina', 'Ohio', 'Oklahoma', 'Oregon', 'Pennsylvania', 'Rhode Island', 'South Carolina', 'South Dakota', 'Tennessee', 'Texas', 'Utah', 'Vermont', 'Virginia', 'Washington', 'West Virginia', 'Wisconsin', 'Wyoming'];
     
@@ -36,6 +37,7 @@ angular.module('myApp.chat').controller('Chat',
       if (isNewChat) {
 	getRecipient();
       } else {
+	$scope.chatId = $routeParams.chat_id;
 	getConversation();
       }
     }

@@ -22,12 +22,10 @@ socket['connect'] = function(user) {
   });
   
   session.on('chat.new', function(data){
-    console.log(data);
     newMessage(data);
   });
   
   session.on('chat.sent', function(data){
-    console.log('Message sent', data);
     messageSent(data);
-    });
+  });
 };
