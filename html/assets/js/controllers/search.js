@@ -29,26 +29,54 @@ angular.module('myApp.search').controller('Search',
     next(null, function(){getContacts();});
     });
     
-    function getContacts() {
-      var dataUrl = '/users?limit=0';
-      if ( $routeParams.action=='mycontacts' ) {
-        dataUrl = '/users/'+$scope.user['uname']+'/contacts';
-      } else if ( $routeParams.action=='history' ) {
-        dataUrl = '/chats/'+$scope.user['uname']+'';
+    function getContacts(nextUrl) {
+      var dataUrl = null;
+      if (nextUrl) {
+	dataUrl = nextUrl;
+      } else {
+	dataUrl = '/users?limit=1';
+	if ( $routeParams.action=='mycontacts' ) {
+	  dataUrl = '/users/'+$scope.user['uname']+'/contacts';
+	} else if ( $routeParams.action=='history' ) {
+	  dataUrl = '/chats/'+$scope.user['uname']+'';
+	}	
       }
       
       $http.get(dataUrl)
-      .success(function(data) {
-        $scope.users = data['data'];
+      .success(function(data, status, headers, config) {
+	var results = [];
+	results.data = data;
+	results.headers = headers();
+	results.status = status;
+	results.config = config;
+	console.log(results);
+	
+	var links = parseLinkHeader(results.headers['link']);
+	if (nextUrl) {
+	  $scope.users = jQuery.merge(jQuery.merge([], $scope.users), data['data']);
+	} else {
+	  $scope.users = data['data'];
+	}
         $scope.orderProp = 'username';
         if ( typeof data['chats'] !== 'undefined' ) {
             $scope.chats = data['chats'];
         }
-        console.log(data);
+	$scope.nextUrl = false;
+	if ( links['last']!==links['next'] ) {
+	  $scope.nextUrl = links['next'];
+	}
+	
+	if (jQuery('#users_list').exists()) {
+	jQuery('html, body').animate({ scrollTop: $('#users_list:last').offset().top }, 'slow');
+	}
       })
       .error(function(data) {
         console.log('Error: ' + data);
       });
+    }
+    
+    $scope.nextPage = function() {
+      getContacts($scope.nextUrl);
     }
     
     $scope.deleteUser = function(uid) {

@@ -39,14 +39,14 @@ router.get('/', function(req, res, next) {
         res.set('X-Total-Count', count);
         
         /* find next page */
-        var nextpage = app.locals.baseUrl + 'users?page='+page;
+        var nextpage = app.locals.baseUrl + 'users?page='+page+'&limit='+limit;
         if ( (offset+limit) < count ) {
-            nextpage = app.locals.baseUrl + 'users?page='+(page+1);
+          nextpage = app.locals.baseUrl + 'users?page='+(page+1)+'&limit='+limit;
         }
-        var lastpage = app.locals.baseUrl + 'users?page='+Math.ceil(count/limit)
-        var prevpage = app.locals.baseUrl + 'users?page='+page;
+        var lastpage = app.locals.baseUrl + 'users?page='+Math.ceil(count/limit)+'&limit='+limit;
+        var prevpage = app.locals.baseUrl + 'users?page='+page+'&limit='+limit;
         if ( page>1 ) {
-            prevpage = app.locals.baseUrl + 'users?page='+(page-1);
+            prevpage = app.locals.baseUrl + 'users?page='+(page-1)+'&limit='+limit;
         }
         res.links({
             'prev': prevpage,
