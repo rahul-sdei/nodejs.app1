@@ -26,3 +26,7 @@ db.users.update({name:'Ishant Sharma'}, {$set: {age: 28, wickets: 300, status: '
 db.users.find({wickets: {$exists: true}}).pretty()
 db.users.find({$nor: [{wickets: {$exists: true}}, {roles: 'Captain'}] }).pretty()
 db.users.find({runs: {$not: {$gte: 7500}, $exists: true} }, {name: 1, runs: 1}).pretty()
+
+db.users.update({name: 'MS Dhoni'}, {$set: {spouse: 'Sakshi'}})
+db.users.update({name: 'MS Dhoni'}, {$rename: {spouse: 'partner'}})
+db.users.update({name: 'MS Dhoni'}, {$unset: {partner: 1}})

@@ -17,6 +17,8 @@ var application_root = __dirname,
   socket = require('./app/modules/socket'),
   EventEmitter = require('events').EventEmitter,
   emitter = new EventEmitter(),
+  require('prototypes'),
+  require('./app/prototypes/string.js'),
   port = 4242;
 
 /* Connect to db */
@@ -72,7 +74,6 @@ var server = app.listen(port, function () {
   var port = server.address().port
 
   console.log('Example app listening at http://%s:%s', host, port);
-  console.log(['rahul', 'sethi'].sort().hashCode());
 });
 
 /* setup socket io */
