@@ -30,3 +30,14 @@ db.users.find({runs: {$not: {$gte: 7500}, $exists: true} }, {name: 1, runs: 1}).
 db.users.update({name: 'MS Dhoni'}, {$set: {spouse: 'Sakshi'}})
 db.users.update({name: 'MS Dhoni'}, {$rename: {spouse: 'partner'}})
 db.users.update({name: 'MS Dhoni'}, {$unset: {partner: 1}})
+
+db.users.find({matches: {$elemMatch: {'scores.powerplay1': {$gte: 70} } } }, {name: 1, 'matches.scores.$': 1}).pretty()
+db.users.find({}, {name: 1, matches: {$elemMatch: {'scores.powerplay1': {$gte: 80} } } }).pretty()
+db.users.find({matches: {$size: 3} }, {name: 1}).pretty()
+db.users.find({matches: {$size: 3} }, {name: 1, matches: {$slice: [-2, 1]} }).pretty()
+db.users.find({$text: {$search: "Delhi"} }, {name: 1, score: {$meta: "textScore"} }).sort({score: {$meta: "textScore"} }).pretty()
+db.users.update({name: 'Rohit Sharma'}, {$push: {teams: 'Sri Lanka'}})
+db.users.update({name: 'Rohit Sharma'}, {$push: {teams: {$each: ['Australia', 'South Africa'], $position: 0} } })
+db.users.update({name: 'Rohit Sharma'}, {$push: {teams: {$each: ['Mumbai', 'India'], $position: 0, $slice: 2} } })
+db.users.update({name: 'Rohit Sharma'}, {$pull: {teams: {$in: ['Sri Lanka', 'Australia']} } })
+

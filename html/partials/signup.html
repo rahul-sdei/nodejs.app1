@@ -1,21 +1,39 @@
 <h1>Signup Form</h1>
-<form id="signupForm" ng-submit="createUser()">
-<div class="form-group">
+<form id="signupForm" name="userForm" ng-submit="createUser()" novalidate>
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.uname.$touched) && userForm.uname.$invalid }">
   <label for="uname">User Name</label>
-  <input type="text" class="form-control" id="uname" placeholder="Type your User Name" ng-model="formData.uname">
+  <input name="uname" type="text" class="form-control" id="uname" placeholder="Type your Username" ng-model="formData.uname" required ng-minlength="3" ng-maxlength="8">
+  <div ng-show="userForm.$submitted || userForm.uname.$touched">
+  <p ng-show="userForm.uname.$error.required" class="help-block">Username is required.</p>
+  <p ng-show="userForm.uname.$error.minlength" class="help-block">Username is too short.</p>
+  <p ng-show="userForm.uname.$error.maxlength" class="help-block">Username is too long.</p>
+  </div>
 </div>
-<div class="form-group">
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.fullname.$touched) && userForm.fullname.$invalid }">
   <label for="fullname">Full Name</label>
-  <input type="text" class="form-control" id="fullname" placeholder="Type your Full Name" ng-model="formData.fullname">
+  <input name="fullname" type="text" class="form-control" id="fullname" placeholder="Type your Full Name" ng-model="formData.fullname" required ng-minlength="4">
+  <div ng-show="userForm.$submitted || userForm.fullname.$touched">
+  <p ng-show="userForm.fullname.$error.required" class="help-block">Your name is required.</p>
+  <p ng-show="userForm.fullname.$error.minlength" class="help-block">Your name is too short.</p>
+  </div>
 </div>
-<div class="form-group">
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.passwd.$touched) && userForm.passwd.$invalid }">
   <label for="passwd">Password</label>
-  <input type="password" class="form-control" id="passwd" placeholder="Type your Password" ng-model="formData.passwd">
+  <input name="passwd" type="password" class="form-control" id="passwd" placeholder="Type your Password" ng-model="formData.passwd" required ng-minlength="3" ng-maxlength="8">
+  <div ng-show="userForm.$submitted || userForm.passwd.$touched">
+  <p ng-show="userForm.passwd.$error.required" class="help-block">Your password is required.</p>
+  <p ng-show="userForm.passwd.$error.minlength" class="help-block">Password is too short.</p>
+  <p ng-show="userForm.passwd.$error.maxlength" class="help-block">Password is too long.</p>
+  </div>
 </div>
-<div class="form-group">
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.location.$touched) && userForm.location.$invalid }">
   <label for="location">Location</label>
-  <input type="text" class="form-control" id="location" placeholder="Type your Location" ng-model="formData.location">
+  <input name="location" type="text" class="form-control" id="location" placeholder="Type your Location" ng-model="formData.location" required ng-minlength="6">
+  <div ng-show="userForm.$submitted || userForm.location.$touched">
+  <p ng-show="userForm.location.$error.required" class="help-block">Your location is required.</p>
+  <p ng-show="userForm.location.$error.minlength" class="help-block">Your location is too short.</p>
+  </div>
 </div>
 <button type="button" class="btn btn-success" id="btn_login" ng-click="redirect('login')">Login</button>
-<button type="submit" class="btn btn-primary" id="btn_submit" >Submit</button>
+<button type="submit" class="btn btn-primary" id="btn_submit" ng-disabled="userForm.$invalid">Submit</button>
 </form>
