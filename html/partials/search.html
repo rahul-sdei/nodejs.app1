@@ -7,13 +7,14 @@
     <div class="form-group">
     <label for="sortby">Sort by</label>
     <select ng-model="orderProp" class="form-control" id="sortby">
+      <option></option>
       <option value="username">Name</option>
       <option value="meta.age">Age</option>
     </select>
   </div>
 </form>
 
-<div id="users_list" class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp" ng-if="user1.username !== user.uname">
+<div class="bs-callout bs-callout-info" ng-repeat="user1 in users | filter:query | orderBy:orderProp" ng-if="user1.username !== user.uname">
   <div class="media">
   <div class="media-left" ng-if="true == user1.has_picture">
     <img class="media-object" ng-src="../uploads/{{user1.username}}/mypicture?dim=64" alt="{{user1.username}}">

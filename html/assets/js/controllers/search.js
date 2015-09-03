@@ -34,7 +34,7 @@ angular.module('myApp.search').controller('Search',
       if (nextUrl) {
 	dataUrl = nextUrl;
       } else {
-	dataUrl = '/users?limit=1';
+	dataUrl = '/users?limit=3';
 	if ( $routeParams.action=='mycontacts' ) {
 	  dataUrl = '/users/'+$scope.user['uname']+'/contacts';
 	} else if ( $routeParams.action=='history' ) {
@@ -51,24 +51,28 @@ angular.module('myApp.search').controller('Search',
 	results.config = config;
 	console.log(results);
 	
-	var links = parseLinkHeader(results.headers['link']);
+	
 	if (nextUrl) {
 	  $scope.users = jQuery.merge(jQuery.merge([], $scope.users), data['data']);
 	} else {
 	  $scope.users = data['data'];
 	}
-        $scope.orderProp = 'username';
+        //$scope.orderProp = 'username';
         if ( typeof data['chats'] !== 'undefined' ) {
             $scope.chats = data['chats'];
         }
-	$scope.nextUrl = false;
-	if ( links['last']!==links['next'] ) {
-	  $scope.nextUrl = links['next'];
+	
+	if (typeof results.headers['link'] !== 'undefined') {
+	  var links = parseLinkHeader(results.headers['link']);
+	  $scope.nextUrl = false;
+	  if ( links['last']!==links['curr'] ) {
+	    $scope.nextUrl = links['next'];
+	  }
 	}
 	
-	if (jQuery('#users_list').exists()) {
+	/*if (jQuery('#users_list').exists()) {
 	jQuery('html, body').animate({ scrollTop: $('#users_list:last').offset().top }, 'slow');
-	}
+	}*/
       })
       .error(function(data) {
         console.log('Error: ' + data);

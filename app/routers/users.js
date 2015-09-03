@@ -20,7 +20,7 @@ router.get('/', function(req, res, next) {
   }
   var offset = (page-1) * limit;
   
-  var where = {};
+  var where = {username: {$ne: req.user.username} };
   if ( typeof (req.query.Search)!='undefined' ) {
     var search = req.query.Search;
     if ( typeof (search.fullname)!='undefined' ) { where['name'] =new RegExp(search.fullname, 'i'); }
@@ -38,6 +38,7 @@ router.get('/', function(req, res, next) {
         /* send count in headers */
         res.set('X-Total-Count', count);
         
+        var currpage = app.locals.baseUrl + 'users?page='+page+'&limit='+limit;
         /* find next page */
         var nextpage = app.locals.baseUrl + 'users?page='+page+'&limit='+limit;
         if ( (offset+limit) < count ) {
@@ -49,6 +50,7 @@ router.get('/', function(req, res, next) {
             prevpage = app.locals.baseUrl + 'users?page='+(page-1)+'&limit='+limit;
         }
         res.links({
+            'curr': currpage,
             'prev': prevpage,
             'next': nextpage,
             'last': lastpage,
