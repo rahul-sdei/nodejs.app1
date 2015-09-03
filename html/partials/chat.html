@@ -86,13 +86,18 @@
     </p>
 </div>
 
-<form >
-  <div class="form-group">
+<form name="chatForm" ng-submit="sendChat()" novalidate>
+  <div class="form-group" ng-class="{ 'has-error' : (chatForm.$submitted || chatForm.message.$touched) && chatForm.message.$invalid }">
     <label for="exampleInputEmail1">Type your message</label>
-    <textarea class="form-control" rows="3" ng-model="formData.text"></textarea>
+    <textarea name="message" class="form-control" rows="3" ng-model="formData.text" required ng-minlength="2" ></textarea>
+    <div ng-show="chatForm.$submitted || chatForm.message.$touched">
+    <p ng-show="chatForm.message.$error.required" class="help-block">Message field is required.</p>
+    <p ng-show="chatForm.message.$error.minlength" class="help-block">Your message is too short.</p>
+    </div>
   </div>
-  <button type="button" class="btn btn-success" ng-click="sendChat()">Send</button>
-  
+  <button type="submit" class="btn btn-success" ng-disabled="chatForm.$invalid">Send</button>
+</form>
+
   <div class="form-group" ng-if="chatObject.recipients.length > 0">
     <label>Recipients</label>
     <p class="form-control-static">
@@ -106,13 +111,18 @@
     </button>
     </p>
   </div>
-  
-  <div class="form-group">
+
+<form name="chatForm2" ng-submit="addRecipient()" novalidate>
+  <div class="form-group" ng-class="{ 'has-error' : (chatForm2.$submitted || chatForm2.recipients.$touched) && chatForm2.recipients.$invalid }">
     <label>Add recipient</label>
-    <input type="text" class="form-control" ng-model="formData.recipients" />
+    <input name="recipients" type="text" class="form-control" ng-model="formData.recipients" required ng-minlength="3" />
     <p class="help-block">Type comma separated values for multiple names</p>
+    <div ng-show="chatForm2.$submitted || chatForm2.recipients.$touched">
+    <p ng-show="chatForm2.recipients.$error.required" class="help-block">Recipient name is required.</p>
+    <p ng-show="chatForm2.recipients.$error.minlength" class="help-block">Recipient name is too short.</p>
+    </div>
   </div>
-  <button type="button" class="btn btn-success" ng-click="addRecipient()">Submit</button>
+  <button type="submit" class="btn btn-success" ng-disabled="chatForm2.$invalid">Submit</button>
   
 </form>
 
