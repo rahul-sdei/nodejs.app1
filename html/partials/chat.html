@@ -47,7 +47,7 @@
             return;
         }
         var theDate = new Date(data['date']);
-        data['dateString'] = theDate.format('m M Y H.i');
+        data['dateString'] = theDate.format('d M Y H.i');
         
         var mesg_html = tplNewMesg(data);
         jQuery('#chat_log').append(mesg_html);
@@ -58,7 +58,7 @@
     
     function sendMessage(data, next) {
         var theDate = new Date(data['date']);
-        data['dateString'] = theDate.format('m M Y H.i');
+        data['dateString'] = theDate.format('d M Y H.i');
         
         var mesg_html = tplSentMesg(data);
         $('#chat_log').append(mesg_html);

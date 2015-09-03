@@ -1,22 +1,33 @@
 <h1>Edit Profile</h1>
-<form id="editprofileForm" ng-submit="updateUser('{{user.uname}}')">
-<div class="form-group">
+<form id="editprofileForm" name="userForm" ng-submit="updateUser('{{user.uname}}')" novalidate>
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.fullname.$touched) && userForm.fullname.$invalid }">
   <label for="fullname">Full Name</label>
-  <input type="text" class="form-control" id="fullname" placeholder="Type your Full Name" ng-model="user.fullname">
+  <input name="fullname" type="text" class="form-control" id="fullname" placeholder="Type your Full Name" ng-model="user.fullname" required ng-minlength="4">
+  <div ng-show="userForm.$submitted || userForm.fullname.$touched">
+  <p ng-show="userForm.fullname.$error.required" class="help-block">Your name is required.</p>
+  <p ng-show="userForm.fullname.$error.minlength" class="help-block">Your name is too short.</p>
+  </div>
 </div>
-<div class="form-group">
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.location.$touched) && userForm.location.$invalid }">
   <label for="location">Location</label>
-  <input type="text" class="form-control" id="location" placeholder="Type your Location" ng-model="user.location">
+  <input name="location" type="text" class="form-control" id="location" placeholder="Type your Location" ng-model="user.location" required ng-minlength="6">
+  <div ng-show="userForm.$submitted || userForm.location.$touched">
+  <p ng-show="userForm.location.$error.required" class="help-block">Your location is required.</p>
+  <p ng-show="userForm.location.$error.minlength" class="help-block">Your location is too short.</p>
+  </div>
 </div>
-<div class="form-group">
+<div class="form-group" ng-class="{ 'has-error' : (userForm.$submitted || userForm.age.$touched) && userForm.age.$invalid }">
   <label for="age">Age</label>
-  <input type="text" class="form-control" id="age" placeholder="Type your Age" ng-model="user.age">
+  <input name="age" type="text" class="form-control" id="age" placeholder="Type your Age" ng-model="user.age" required>
+  <div ng-show="userForm.$submitted || userForm.age.$touched">
+  <p ng-show="userForm.age.$error.required" class="help-block">Your age is required.</p>
+  </div>
 </div>
 <div class="form-group">
   <label for="website">Website</label>
   <input type="text" class="form-control" id="website" placeholder="Type your Website" ng-model="user.website">
 </div>
-<button type="submit" class="btn btn-primary" id="btn_submit" >Submit</button>
+<button type="submit" class="btn btn-primary" id="btn_submit" ng-disabled="userForm.$invalid">Submit</button>
 <button type="button" class="btn btn-default" id="btn_goback" ng-click="redirect('home')">Go Back</button>
 </form>
 
