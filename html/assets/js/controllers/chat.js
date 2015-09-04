@@ -101,6 +101,7 @@ angular.module('myApp.chat').controller('Chat',
 	  });
 	});
 	
+	$scope.chatForm.$setUntouched();
 	$scope.formData = {}; // clear the form so our user is ready to enter another
     };
     
@@ -120,6 +121,7 @@ angular.module('myApp.chat').controller('Chat',
         console.log('Error: ' + data);
        });
        
+      $scope.chatForm2.$setUntouched();
       $scope.formData = {}; // clear the form so our user is ready to enter another
       $scope.chatObject.recipients = $scope.chatObject.recipients.concat(recipients);
     }

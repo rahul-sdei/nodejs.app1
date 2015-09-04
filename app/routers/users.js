@@ -7,7 +7,7 @@ var express = require('express'),
   auth = require('../modules/auth');
 
 /* List users */
-router.get('/', function(req, res, next) {
+router.get('/', auth.isAuthenticated, function(req, res, next) {
   var User = require('../models/user');
   
   var page = 1;
@@ -93,7 +93,7 @@ router.post('/', function(req, res, next) {
 });
 
 /* Bulk update Users */
-router.put('/', function(req, res, next) {
+router.put('/', auth.isAdministrator, function(req, res, next) {
   
   var i, len = 0, User = require('../models/user'), users = null;
   eval("users = (" + req.body.users + ")");

@@ -61,6 +61,7 @@ angular.module('myApp.profile').controller('Profile', ['$scope', '$http', '$rout
         headers: {'Content-Type': undefined}
     })
     .success(function(){
+      $scope.user.has_picture = true;
       $location.path( 'home' );
     })
     .error(function(){

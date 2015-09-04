@@ -114,7 +114,11 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)',
            return;
        }
        /* call event emitter */
-       emitter.emit('chat.save', recipients, req.body._id, messageObject);
+       emitter.emit('chat.save', recipients, {
+            chatId: chat1.chat_id,
+            messageId: req.body._id,
+            messageObject: messageObject
+            });
        /* send response */
        res.status(200).json({'code': 0, 'error': null});
     });
@@ -211,7 +215,7 @@ router.get('/:uname([a-zA-Z0-9\-\_]+)/:chat_id([0-9\-\_]+)',
     Chat.Model.findOne({'recipients':creator,'chat_id':chatId}, function(err, chat) {
       if (err) { next(err); return; }
       else if ( chat==null ) { res.status(404).json({'code': 404, 'error': 'No records found.'}); return; }
-      Chat.MesgModel.find({'chat_id': chatId}, function(err, messages){
+      Chat.MesgModel.find({'chat_id': chatId}).sort('created_at').exec(function(err, messages){
         if (err) { next(err); return; }
         res.status(200).json({
           'history': messages,
