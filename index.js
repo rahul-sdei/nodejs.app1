@@ -17,8 +17,10 @@ var application_root = __dirname,
   socket = require('./app/modules/socket'),
   EventEmitter = require('events').EventEmitter,
   emitter = new EventEmitter(),
+  logger = require('morgan'),
   require('prototypes'),
   require('./app/prototypes/string.js'),
+  compressor = require('node-minify'),
   port = 4242;
 
 /* Connect to db */
@@ -57,12 +59,15 @@ app.get('/', function (req, res) {
   res.send('Hello World!')
 });
 
+// add logging to application
+app.use(logger('dev'));
+
 // middleware to router
 app.use(/*basicAuth(function(user, pass) { return 'testUser'===user && 'testPass'===pass; }),*/
   function timeLog(req, res, next) {
-  console.log('Time: ', Date.now());
-  console.log('Request URL:', req.originalUrl);
-  console.log('Request Type:', req.method);
+  //console.log('Time: ', Date.now());
+  //console.log('Request URL:', req.originalUrl);
+  //console.log('Request Type:', req.method);
   /*if ( typeof (req.body) != 'undefined' ) { console.log(req.body); }
   if ( typeof (req.files) != 'undefined' ) { console.log(req.files); }*/
   next();
@@ -109,4 +114,31 @@ app.use(function(err, req, res, next) {
 /* set error handler */
 process.on('uncaughtException', function(err) {
   console.log('Uncaught exception: ' + err);
+});
+
+// Using Google Closure
+new compressor.minify({
+    type: 'uglifyjs',
+    fileIn: ['html/assets/js/jquery-2.1.3.min.js', 
+        'html/assets/js/bootstrap.min.js',
+        'html/assets/js/bootstrap-notify.min.js',
+        'html/assets/js/angularjs/1.4.4/angular.min.js',
+        'html/assets/js/angularjs/1.4.4/angular-route.min.js',
+        'html/assets/js/ngStorage.min.js',
+        'html/assets/js/ui-bootstrap-tpls-0.13.3.min.js',
+        'html/assets/js/underscore-min.js',
+        'html/assets/js/func.js',
+        'html/assets/js/prototypes.js',
+        'html/assets/js/app.js',
+        'html/assets/js/controllers/user.js',
+        'html/assets/js/controllers/profile.js',
+        'html/assets/js/controllers/search.js',
+        'html/assets/js/controllers/chat.js',
+        'html/assets/js/directives/block.js',
+        'html/assets/js/directives/file-model.js'],
+    fileOut: 'html/assets/js-dist/base-onefile-uglify.js',
+    callback: function(err, min){
+        console.log(err);
+//        console.log(min);
+    }
 });

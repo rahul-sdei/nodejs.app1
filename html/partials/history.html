@@ -4,16 +4,10 @@
     <label for="query">Search</label>
     <input type="text" class="form-control" id="query" placeholder="User Name" ng-model="query">
   </div>
-    <div class="form-group">
-    <label for="sortby">Sort by</label>
-    <select ng-model="orderProp" class="form-control" id="sortby">
-      <option value="username">Name</option>
-      <option value="meta.age">Age</option>
-    </select>
-  </div>
+    
 </form>
 
-<div class="bs-callout bs-callout-info" ng-repeat="chat in chats | filter:query | orderBy:orderProp" id="history_{{chat.chat_id}}">
+<div class="bs-callout bs-callout-info" ng-repeat="chat in chats | filter:query" id="history_{{chat.chat_id}}">
   <div class="media">
   <div class="media-left" ng-if="true == chat.chat_icon">
     <img class="media-object" ng-src="../uploads/chat_icon?dim=64" alt="{{chat.chat_icon}}">

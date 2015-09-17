@@ -16,12 +16,14 @@ module.exports = function(passport){
               // In case of any error, return using the done method
               if (err){
                   console.log('Error in SignUp: '+err);
-                  return done(err);
+                  done(err);
+                  return;
               }
               // already exists
               if (user) {
                   console.log('User already exists with username: '+username);
-                  return done(null, false, req.flash('message','User Already Exists'));
+                  done(null, false, req.flash('message','User Already Exists'));
+                  return;
               } else {
                   // if there is no user with that email
                   // create the user
@@ -40,7 +42,7 @@ module.exports = function(passport){
                           throw err;  
                       }
                       console.log('User Registration succesful');    
-                      return done(null, newUser);
+                      done(null, newUser); return;
                   });
               }
           });

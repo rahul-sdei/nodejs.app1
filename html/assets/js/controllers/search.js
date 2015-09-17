@@ -17,7 +17,7 @@ angular.module('myApp.search').controller('Search',
      function($scope, $http, $routeParams, $location, $userState, $localStorage) {
     $scope.tplSidebar = 'partials/sidebar.html';
     $scope.users = [];
-    $scope.chats = {};
+    $scope.chats = [];
     
     // when landing on the page, get data and show them      
     $userState.findUser(function(err, next){

@@ -63,7 +63,7 @@ router.get('/', auth.isAuthenticated, function(req, res, next) {
 });
 
 /* Create a user */
-router.post('/', function(req, res, next) {
+router.post('/', auth.isAdministrator, function(req, res, next) {
   var User = require('../models/user')
     , isAdmin=0;
     
@@ -299,7 +299,9 @@ router.post('/:uname([a-zA-Z0-9\-\_]+)/contacts', auth.canEditUser, function(req
 });
 
 /* Remove a contact */
-router.delete('/:uname([a-zA-Z0-9\-\_]+)/contacts/:id([a-zA-Z0-9\-\_]+)', auth.canEditUser, function(req, res, next) {
+router.delete('/:uname([a-zA-Z0-9\-\_]+)/contacts/:id([a-zA-Z0-9\-\_]+)',
+  auth.isAdministrator,
+  function(req, res, next) {
   var User = require('../models/user'),
   mongoose = require('mongoose'),
   uname = req.params.uname,

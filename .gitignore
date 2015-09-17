@@ -82,3 +82,9 @@ modules/views/
 # Uploads directory
 # ---
 /uploads/*
+
+
+# ---
+# js-dist
+# ---
+html/assets/js-dist/

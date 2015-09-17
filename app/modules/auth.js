@@ -25,10 +25,11 @@ auth['isAdministrator'] = function(req, res, next) {
 auth['canEditUser'] = function(req, res, next) {
   auth['isAuthenticated'](req, res, function(){
     var uname = req.params.uname;
-    if ( req.user.username !== uname ) { 
+    if ( req.user.is_admin === true || req.user.username === uname ) {
+      return next();
+    } else { 
       return res.status(400).json( { 'code':400, 'error':'Bad request' } ); 
     }
-    return next();
   });
   };
 
