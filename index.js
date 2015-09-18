@@ -117,7 +117,7 @@ process.on('uncaughtException', function(err) {
 });
 
 // Using Google Closure
-new compressor.minify({
+/*new compressor.minify({
     type: 'uglifyjs',
     fileIn: ['html/assets/js/jquery-2.1.3.min.js', 
         'html/assets/js/bootstrap.min.js',
@@ -135,10 +135,11 @@ new compressor.minify({
         'html/assets/js/controllers/search.js',
         'html/assets/js/controllers/chat.js',
         'html/assets/js/directives/block.js',
-        'html/assets/js/directives/file-model.js'],
+        'html/assets/js/directives/file-model.js',
+        'html/assets/js/services/chat.js'],
     fileOut: 'html/assets/js-dist/base-onefile-uglify.js',
     callback: function(err, min){
         console.log(err);
 //        console.log(min);
     }
-});
+});*/
