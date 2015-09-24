@@ -40,17 +40,21 @@ angular.module('myApp.chat').controller('Chat',
                 });
 
                 function getData() {
-                    /*$chatResource.list($scope.user.uname, function(chatObjects) {
-                        console.log('$chatResource.list() finished');
+                    /*var obj1 = new $chatResource.chat($scope.user['uname']);
+                    obj1.save({
+                        recipients: ["rahulsethi", "vkohli", "sraina", "rsharma"],
+                        chat_title: "$chatResource object",
+                        message: "I'm created using $chatResource"
+                    });
+                    var chatObjects = obj1.query(function(){
                         console.log(chatObjects);
                     });
-                    $chatResource.loadOne($scope.user.uname, '-1305204093', function(chatObject) {
-                        console.log('$chatResource.loadOne() finished');
+                    var chatObject = obj1.get({chatId: $routeParams.chat_id}, function() {
                         console.log(chatObject);
-                        $chatResource.sendChat($scope.user.uname, '-1305204093', 'This is submitted via $chatResource', function(res){
-                            console.log('$chatResource.sendChat() finished');
-                            console.log(res);
-                        });
+                    });
+                    var obj2 = new $chatResource.chat($scope.user['uname']);
+                    obj2.send({chatId: $routeParams.chat_id}, {message: 'This is submitted via $chatResource'}, function(){
+
                     });*/
                     
                     if (isNewChat) {
@@ -160,30 +164,15 @@ angular.module('myApp.chat').controller('Chat',
         
 angular.module('myApp.chat').service('$chatResource', ['$resource',
 function($resource) {
-    var service = {},
-        chatResource = $resource('/chats/:uname/:chatId',
-        {chatId: '@chat_id'}, {
-            startChat: {method: 'post'},
-            sendMesg: {method: 'post'}
-        });
+    var service = {};
         
-    service['list'] = function(uname, cb) {
-        console.log('$chatResource.list() called');
-        chatResource.get({uname: uname}, cb);
+    service['chat'] = function(username) {
+        return $resource('/chats/:uname/:chatId',
+        {uname: username, chatId: '@chat_id'}, {
+            //startChat: {method: 'post'},
+            send: {method: 'post'}
+        });
     };
-    
-    service['loadOne'] = function(uname, chatId, cb) {
-        chatResource.get({uname: uname, chatId: chatId}, cb);
-    };
-    
-    service['startChat'] = function(uname, recipients, message, cb){
-        chatResource.startChat({uname: uname}, {recipients: recipients, message: message}, cb);
-    };
-    
-    service['sendMesg'] = function(uname, chatId, message, cb) {
-        chatResource.sendChat({uname: uname, chatId: chatId}, {message: message}, cb)
-    };
-    
     return service;
 }]);
 
